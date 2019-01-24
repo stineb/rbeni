@@ -18,7 +18,7 @@
 ##
 ## Beni Stocker, 17.06.2013
 ## -------------------------------------------------------------------------
-cdf.write <- function(
+write_nc <- function(
                       var,
                       varnam,
                       lon,lat,

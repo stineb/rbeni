@@ -1,4 +1,4 @@
-get.nbp <- function( name, dir,
+get_nbp <- function( name, dir,
                     lu=FALSE,
                     netcdf=FALSE,
                     monthly=FALSE,

@@ -9,7 +9,7 @@
 ## Beni Stocker, 21.03.2011
 ## -----------------------------------------------------------------
 
-get.land.avail <- function( grid.out, dirnam, verbose=FALSE, fraction=TRUE ){
+get_land_avail <- function( grid.out, dirnam, verbose=FALSE, fraction=TRUE ){
 		
   library(RNetCDF)
   source('./regrid_library/area.R')

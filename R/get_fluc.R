@@ -1,4 +1,4 @@
-get.f.luc <- function( name.nolu, name.lu, dir,
+get_fluc <- function( name.nolu, name.lu, dir,
                       netcdf=FALSE,
                       monthly=FALSE,
                       tstart=NA, tend=NA,
