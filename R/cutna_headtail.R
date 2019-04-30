@@ -1,3 +1,17 @@
+#' Removes NA values from head and tail
+#'
+#' Removes all consecutive NA values starting from the head
+#' and tail of a vector up to the first non-NA value.
+#'
+#' @param vec A vector of numeric values.
+#'
+#' @return A reduced vector, shortened after removing consecutive
+#' NAs from the head and tail of the initial vector (argument \code{vec}).
+#
+#' @export
+#'
+#' @examples vec <- c(rep(NA, 5), seq(1,10), NA, seq(12,20), rep(NA,10))
+#' cutna_headtail(vec)
 cutna_headtail <- function( vec ){
 
   ## Remove (cut) NAs from the head and tail of a vector.
@@ -15,10 +29,10 @@ cutna_headtail <- function( vec ){
         break
       }
     }
-    # vec <- vec[ -(1:cuthead) ]
-    idxs_head <- 1:cuthead
+    vec <- vec[ -(1:cuthead) ]
+    #idxs_head <- 1:cuthead
   } else {
-    idxs_head <- c()
+    #idxs_head <- c()
   }
 
 
@@ -34,15 +48,16 @@ cutna_headtail <- function( vec ){
         break
       }
     }
-    # vec <- vec[ -((length(vec)-cuttail+1):length(vec)) ]
-    idxs_tail <- (length(vec)-cuttail+1):length(vec)
+    vec <- vec[ -((length(vec)-cuttail+1):length(vec)) ]
+    #idxs_tail <- (length(vec)-cuttail+1):length(vec)
   } else {
-    idxs_tail <- c()
+    #idxs_tail <- c()
   }
 
-  idxs <- c( idxs_head, idxs_tail )
+  #idxs <- c( idxs_head, idxs_tail )
 
-  return(idxs)
+  #return(idxs)
+  return(vec)
 
 }
 
