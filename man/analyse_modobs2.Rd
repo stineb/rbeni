@@ -5,9 +5,12 @@
 \title{Analyse modelled values versus observed data.}
 \usage{
 analyse_modobs2(df, mod, obs, type = "points", filnam = NA,
-  ylab = "Observed", xlab = "Modeled")
+  xlim = NULL, ylim = NULL, use_factor = NULL, ...)
 }
 \arguments{
+\item{df}{A data frame containing columns with names corresponding to arguments
+\code{mod} and \code{obs}}
+
 \item{mod}{A vector of numeric values representing modelled values.}
 
 \item{obs}{A vector of numeric values representing observed values.}
@@ -18,10 +21,6 @@ uses \code{ggplot2::geom_hex()}, if \code{"heat"} uses adjusted
 
 \item{filnam}{A character string specifying the name of the file containing
 the plot.}
-
-\item{ylab}{(Optional) A character string for a new y-axis label}
-
-\item{xlab}{(Optional) A character string for a new x-axis label}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled

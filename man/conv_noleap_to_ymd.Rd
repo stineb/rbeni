@@ -2,29 +2,28 @@
 % Please edit documentation in R/conv_noleap_to_ymd.R
 \name{conv_noleap_to_ymd}
 \alias{conv_noleap_to_ymd}
-\title{Convert time vector from a NetCDF file to a ymd object}
+\title{Converts no-leapyear dates to lubridate::ymd object}
 \usage{
-conv_noleap_to_ymd(time, since, calender.days = "365")
+conv_noleap_to_ymd(time, origin, calendar_days = 365)
 }
 \arguments{
-\item{time}{A vector with timesteps, which once was the time variable of a
-NetCDF file. These timesteps have to be on DAILY basis!}
+\item{time}{A vector with timesteps, which once was the time variable of a NetCDF file. 
+These timesteps have to be on DAILY basis!}
 
-\item{since}{ymd date object, time starts with.}
+\item{origin}{POSIXt or lubridate \code{ymd} object defining the date of zero-day of the time 
+vector (argument \code{time})}
 
-\item{calender.days}{Character or numeric. Calendar type. Can be "365" or "360"}
+\item{calendar_days}{Character or numeric. Calendar type. Can be "365" or "360".}
 }
 \value{
-A ymd date vector of dates within NetCDF file, having same length as
+lubridate::ymd vector of dates within NetCDF file, having same length as
 NetCDF time dimension.
 }
 \description{
-Converts timesteps from NetCDF file having 365 or 360 days calendar to
-lubridate::ymd class timevector. The reason for this function is, that
-cannot simply add the timevector to the POSIX date we wish, as this
-would lead to complete nonsense data! Therefore, for 365 days calendar
-we leave out feb 29th if being leap year.
-}
-\details{
-History: Copied from https://github.com/cran/wux/blob/master/R/ReadNetCdfTimeData.R
+Converts timesteps from NetCDF file having 365 or 360 days calendar to POSIXt class timevector. 
+The reason for this function is, that cannot simply add the timevector to the POSIX date we wish, 
+as this would lead to complete nonsense data! Therefore we add the years and days seperately and 
+leave out  may 31st, july 31st aug 31st, oct 31st and dec 31st (360 days) and march 31st if leapyear. 
+For 365 days calendar we leave out feb 29th if being leap year.
+Taken from https://github.com/cran/wux/blob/master/R/ReadNetCdfTimeData.R
 }

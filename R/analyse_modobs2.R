@@ -12,8 +12,6 @@
 #' \code{geom_points()} with color indicating density
 #' @param filnam A character string specifying the name of the file containing
 #' the plot.
-#' @param ylab (Optional) A character string for a new y-axis label
-#' @param xlab (Optional) A character string for a new x-axis label
 # @param use_factor (Optional) A character string classifying points (optional)
 #'
 #' @export
@@ -26,8 +24,6 @@ analyse_modobs2 <- function(
   obs,
   type       = "points",
   filnam     = NA,
-  ylab       = "Observed",
-  xlab       = "Modeled",
   xlim       = NULL,
   ylim       = NULL,
   use_factor = NULL,
@@ -149,10 +145,7 @@ analyse_modobs2 <- function(
                   xlim=xlim,
                   ylim=ylim,
                   main="",
-                  xlab=xlab,
-                  ylab=ylab,
-                  ggplot=TRUE,
-                  ...)
+                  ggplot=TRUE )
 
     gg <- gg +
       geom_smooth(method='lm', color="red", size=0.5, se=FALSE) +
@@ -163,9 +156,7 @@ analyse_modobs2 <- function(
                                 RMSE == .(rmse_lab) ~~
                                 bias == .(bias_lab) ~~
                                 slope == .(slope_lab) ~~
-                                italic(N) == .(n_lab) ),
-        x=xlab,
-        y=ylab)
+                                italic(N) == .(n_lab) ))
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -193,9 +184,7 @@ analyse_modobs2 <- function(
           RMSE == .(rmse_lab) ~~~
           bias == .(bias_lab) ~~~
           slope == .(slope_lab) ~~~
-          italic(N) == .(n_lab) ),
-        x=xlab,
-        y=ylab)
+          italic(N) == .(n_lab) ))
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -222,9 +211,7 @@ analyse_modobs2 <- function(
                                 RMSE == .(rmse_lab) ~~
                                 bias == .(bias_lab) ~~
                                 slope == .(slope_lab) ~~
-                                italic(N) == .(n_lab) ),
-        x=xlab,
-        y=ylab)
+                                italic(N) == .(n_lab) ))
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -234,5 +221,5 @@ analyse_modobs2 <- function(
 
   }
 
-  return(df_metrics)
+  return(list(df_metrics=df_metrics, gg=gg))
 }
