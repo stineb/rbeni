@@ -11,16 +11,18 @@ analyse_modobs2(df, mod, obs, type = "points", filnam = NA,
 \item{df}{A data frame containing columns with names corresponding to arguments
 \code{mod} and \code{obs}}
 
-\item{mod}{A vector of numeric values representing modelled values.}
+\item{mod}{A character string specifying the variable name (column) of the
+modelled (simulated) values in data frame \code{df}.}
 
-\item{obs}{A vector of numeric values representing observed values.}
+\item{obs}{A character string specifying the variable name (column) of the
+observed values in data frame \code{df}.}
 
 \item{type}{If \code{"points"}, uses \code{geom_points()}, if \code{"hex"}
 uses \code{ggplot2::geom_hex()}, if \code{"heat"} uses adjusted
 \code{geom_points()} with color indicating density}
 
 \item{filnam}{A character string specifying the name of the file containing
-the plot.}
+the plot. Defaults to \code{NA} (no file is created).}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled

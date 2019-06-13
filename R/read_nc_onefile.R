@@ -24,14 +24,25 @@ read_nc_onefile <- function(filn){
     sink()
   }
 
-  out <- list(
-    lon = ncdf4::ncvar_get(nc, nc$dim$lon$name),
-    lat = ncdf4::ncvar_get(nc, nc$dim$lat$name),
-    time = ncdf4::ncvar_get(nc, nc$dim$time$name)
-  )
+  if (is.null(nc$dim$time)){
+    ## no time dimension
+    out <- list(
+      lon = ncdf4::ncvar_get(nc, nc$dim$lon$name),
+      lat = ncdf4::ncvar_get(nc, nc$dim$lat$name)
+    )
+  } else {
+    ## with time dimension
+    out <- list(
+      lon = ncdf4::ncvar_get(nc, nc$dim$lon$name),
+      lat = ncdf4::ncvar_get(nc, nc$dim$lat$name),
+      time = ncdf4::ncvar_get(nc, nc$dim$time$name)
+    )
 
-  if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
-    out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
+    ## convert to date
+    if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
+      out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
+    }
+
   }
 
   # get variables

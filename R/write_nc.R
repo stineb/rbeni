@@ -21,7 +21,8 @@
 write_nc <- function(
                       var,
                       varnam,
-                      lon,lat,
+                      lon,
+                      lat,
                       filnam,
                       z_dim          = NA,
                       time           = NA,
