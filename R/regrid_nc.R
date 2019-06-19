@@ -25,7 +25,7 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", re
         rasta <- raster::raster(obj, varname = varname)
         filn_orig <- obj
       } else {
-        #rlang::abort(paste("File does not exist:", obj))
+        rlang::abort(paste("File does not exist:", obj))
       }
     } else if (class(obj)[[1]]=="RasterLayer"){
       #rlang::warn("Raster object provided as argument 'obj'. Thanks.")
@@ -38,7 +38,7 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", re
       fact_y <- dlat / raster::res(rasta)[2]
     }
 
-    ## regrid by maximum
+    ## regrid by maximum (same aggregation factor in x and y directions)
     rasta_lores <- raster::aggregate( x = rasta, fact = fact_x, fun = max  )
 
     ## write to file
@@ -47,14 +47,19 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", re
     print(paste("Regridded file written:", filn_out))
     raster::writeRaster(rasta_lores, filename = filn_out, format = "CDF", overwrite = TRUE )
 
+    ## Problem with raster writing: if time dimension has length 1, it's not written.
+    ## take time dimension from original high resolution file and write file again
+    rm("rasta") # to save memory
+    nc_hires <- read_nc_onefile(filn_orig)
+    nc_lores <- read_nc_onefile(filn_out)
+    nc_lores$time <- nc_hires$time
+    write_nc2(nc_lores, outfilnam = filn_out)
+
     ## read back in as rbeni::nc object
-    if (returnobj){
-      nc <- rbeni::read_nc_onefile(filn_out)
-    } else {
-      nc <- NULL
+    if (!returnobj){
+      nc_lores <- NULL
     }
 
-    #arr <- as(rasta_lores, "matrix")
   }
-  return(nc)
+  return(nc_lores)
 }

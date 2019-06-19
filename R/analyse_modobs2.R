@@ -155,5 +155,5 @@ analyse_modobs2 <- function(
 
   }
 
-  return(list(df_metrics=df_metrics, gg=gg))
+  return(list(df_metrics=df_metrics, gg=gg, linmod=linmod))
 }

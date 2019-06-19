@@ -13,17 +13,19 @@ write_nc2(var, varnam = "varnam", filnam_template = NA,
   varnam5 = NA, verbose = FALSE, lonnam = "lon", latnam = "lat",
   zdimnam = "z", timenam = "time", units_lon = "degrees_east",
   units_lat = "degrees_north", units_var1 = "", units_var2 = "",
-  units_time = "", units_zdim = "", long_name_var1 = "",
-  long_name_var2 = "", missing_value = -9999, att_title = "",
-  att_history = "")
+  units_time = "days since 2001-1-1 0:0:0", units_zdim = "",
+  long_name_var1 = "", long_name_var2 = "", missing_value = -9999,
+  att_title = "", att_history = "")
 }
 \arguments{
-\item{var}{A array of size length(lon) x length(lat) x length(z_dim) x length(time). The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory.}
+\item{var}{Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
+The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory. If it's an rbeni-nc object, then no additional
+aruguments are required.}
 
 \item{varnam}{A character string specifying the name of the (first) variable that is written into the NetCDF output.}
 
-\item{filnam_template}{A character string specifying the file name of the template-NetCDF file from which all dimension information is read 
-and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all 
+\item{filnam_template}{A character string specifying the file name of the template-NetCDF file from which all dimension information is read
+and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all
 dimension specification are overridden.}
 
 \item{lonnam_template}{Longitude name in the template file. Required only if \code{!is.na(filnam_template)}.}

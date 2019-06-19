@@ -2,12 +2,14 @@
 #'
 #' Writes one or multiple arrays with identical dimensions to a NetCDF file,
 #' creating multiple variables each with the same dimension.
-#' 
-#' @param var     A array of size length(lon) x length(lat) x length(z_dim) x length(time). The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory.
+#'
+#' @param var Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
+#' The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory. If it's an rbeni-nc object, then no additional
+#' aruguments are required.
 #' @param varnam  A character string specifying the name of the (first) variable that is written into the NetCDF output.
-#' @param filnam_template A character string specifying the file name of the template-NetCDF file from which all dimension information is read 
-#' and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all 
-#' dimension specification are overridden. 
+#' @param filnam_template A character string specifying the file name of the template-NetCDF file from which all dimension information is read
+#' and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all
+#' dimension specification are overridden.
 #' @param lonnam_template Longitude name in the template file. Required only if \code{!is.na(filnam_template)}.
 #' @param latnam_template Latitude name in the template file. Required only if \code{!is.na(filnam_template)}.
 #' @param lon     A vector containing the longitudes of the grid cell's mid-points. Defaults to \code{seq(dim(var)[1])}.
@@ -45,17 +47,17 @@
 #' @return Nothing
 #' @export
 #'
-write_nc2 <- function(var, 
+write_nc2 <- function(var,
                       varnam = "varnam",
                       filnam_template = NA,
                       lonnam_template = "lon",
                       latnam_template = "lat",
-                      lon = seq(dim(var)[1]), 
-                      lat = seq(dim(var)[2]), 
-                      z_dim = NA, 
-                      time  = NA, 
+                      lon = seq(dim(var)[1]),
+                      lat = seq(dim(var)[2]),
+                      z_dim = NA,
+                      time  = NA,
                       make_zdim = FALSE,
-                      make_tdim = FALSE, 
+                      make_tdim = FALSE,
                       outfilnam = "out.nc",
                       nvars          = 1,
                       var2           = NA, varnam2 = NA,
@@ -71,7 +73,7 @@ write_nc2 <- function(var,
                       units_lat      = "degrees_north",
                       units_var1     = "",
                       units_var2     = "",
-                      units_time     = "",
+                      units_time     = "days since 2001-1-1 0:0:0",
                       units_zdim     = "",
                       long_name_var1 = "",
                       long_name_var2 = "",
@@ -79,18 +81,54 @@ write_nc2 <- function(var,
                       att_title      = "",
                       att_history    = ""
                       ){
-  
-  ## Checks
+
+  ## If 'var' is a rbeni-nc element, then no additional info about dimensions must be provided
+  if (is.element("vars", ls(var)) && is.element("lat", ls(var)) && is.element("lon", ls(var))){
+    obj <- var
+    var <- obj$vars[[1]]
+    lon <- obj$lon
+    lat <- obj$lat
+    if ("time" %in% ls(obj)){
+      make_tdim <- TRUE
+    } else{
+      make_tdim <- FALSE
+    }
+    if (length(ls(obj))>5){
+      make_zdim <- TRUE
+    } else {
+      make_zdim <- FALSE
+    }
+    if (make_tdim) time <- obj$time
+    if (make_zdim){
+      varnams <- names(obj)
+      zdimname <- varnams[-which(varnams=="lon" | varnams=="lat" | varnams=="time" | varnams=="vars" | varnams=="varnams")]
+      z_dim <- obj[[zdimname]]
+    }
+    varnam <- obj$varnams[[1]]
+    nvars <- length(obj$varnams)
+    if (length(obj$varnams)>1) var2 <- obj$vars[[2]]
+    if (length(obj$varnams)>2) var3 <- obj$vars[[3]]
+    if (length(obj$varnams)>3) var4 <- obj$vars[[4]]
+    if (length(obj$varnams)>4) var5 <- obj$vars[[5]]
+    if (length(obj$varnams)>1) varnam2 <- obj$varnams[[2]]
+    if (length(obj$varnams)>2) varnam3 <- obj$varnams[[3]]
+    if (length(obj$varnams)>3) varnam4 <- obj$varnams[[4]]
+    if (length(obj$varnams)>4) varnam5 <- obj$varnams[[5]]
+
+
+  } else {
+
+    ## Checks
     ## Get the dimensionality of 'var' and whether the dimension vector provided fit.
     vardims <- dim(var)
-    if (length(lon)!=vardims[1]) {rlang::abort("Aborting. Longitude vector provided does not match the first dimension of the argument 'var'.")}
-    if (length(lat)!=vardims[2]) {rlang::abort("Aborting. Latitude vector provided does not match the second dimension of the argument 'var'.")}
+    if (length(lon)!=vardims[1]){rlang::abort("Aborting. Longitude vector provided does not match the first dimension of the argument 'var'.")}
+    if (length(lat)!=vardims[2]){rlang::abort("Aborting. Latitude vector provided does not match the second dimension of the argument 'var'.")}
 
     if (length(vardims)==4){
       make_zdim==TRUE
       make_tdim==TRUE
       if (is.na(make_zdim)){
-        if (identical(z_dim, NA)) {rlang::abort("Aborting. No z_dim vector provided.")}
+        if (identical(z_dim, NA)){rlang::abort("Aborting. No z_dim vector provided.")}
       }
       if (is.na(make_tdim)){
         if (identical(time, NA)) {rlang::abort("Aborting. No time vector provided.")}
@@ -136,12 +174,12 @@ write_nc2 <- function(var,
             tmp <- array(NA,dim=c(dim(var4),1))
             tmp[,,1] <- var4
             var4 <- tmp
-          } 
+          }
           if (nvars>4){
             tmp <- array(NA,dim=c(dim(var5),1))
             tmp[,,1] <- var5
             var5 <- tmp
-          } 
+          }
         }
       } else if (make_zdim) {
         if (length(z_dim)!=1){
@@ -165,16 +203,18 @@ write_nc2 <- function(var,
             tmp <- array(NA,dim=c(dim(var4),1))
             tmp[,,1] <- var4
             var4 <- tmp
-          } 
+          }
           if (nvars>4){
             tmp <- array(NA,dim=c(dim(var5),1))
             tmp[,,1] <- var5
             var5 <- tmp
-          } 
+          }
         }
-      }  
+      }
     }
-  
+
+  }
+
   ## Define dimensions
   if (!is.na(filnam_template)){
 
@@ -189,7 +229,7 @@ write_nc2 <- function(var,
     if (length(nc_template$dim)>3) dimidlist[[4]] <- nc_template$dim[[4]]
 
     ncdf4::nc_close(nc_template)
-    
+
   } else {
 
     ## Define new dimensions
@@ -197,11 +237,17 @@ write_nc2 <- function(var,
     lonid                 <- ncdf4::ncdim_def(lonnam,  units = units_lon,  vals = lon,   longname = "Longitude (East)")
     latid                 <- ncdf4::ncdim_def(latnam,  units = units_lat,  vals = lat,   longname = "Latitude (North)")
     if (make_zdim) zid    <- ncdf4::ncdim_def(zdimnam, units = units_zdim, vals = z_dim, longname = "")
-    if (make_tdim) timeid <- ncdf4::ncdim_def(timenam, units = units_time, vals = time,  longname = "Time (years)")
+    if (make_tdim) timeid <- ncdf4::ncdim_def(timenam, units = units_time, vals = time,  longname = "Time")
 
     dimidlist <- list(lonid, latid)
-    if (make_zdim) dimidlist <- c(dimidlist, zid)
-    if (make_tdim) dimidlist <- c(dimidlist, timeid)
+    if (make_zdim) dimidlist[[3]] <- zid
+    if (make_tdim){
+      if (make_zdim){
+        dimidlist[[4]] <- timeid
+      } else {
+        dimidlist[[3]] <- timeid
+      }
+    }
 
   }
 
@@ -211,12 +257,12 @@ write_nc2 <- function(var,
   if (!identical(var3, NA)) varid3 <- ncdf4::ncvar_def(name = varnam3, units = units_var3, dim = dimidlist, missval = missing_value, verbose = verbose)
   if (!identical(var4, NA)) varid4 <- ncdf4::ncvar_def(name = varnam4, units = units_var4, dim = dimidlist, missval = missing_value, verbose = verbose)
   if (!identical(var5, NA)) varid5 <- ncdf4::ncvar_def(name = varnam5, units = units_var5, dim = dimidlist, missval = missing_value, verbose = verbose)
-  
+
   varid_list <- list(varid1)
-  if (!identical(var2, NA)) varid_list <- c(varid_list, varid2)
-  if (!identical(var3, NA)) varid_list <- c(varid_list, varid3)
-  if (!identical(var4, NA)) varid_list <- c(varid_list, varid4)
-  if (!identical(var5, NA)) varid_list <- c(varid_list, varid5)
+  if (!identical(var2, NA)) varid_list[[2]] <- varid2
+  if (!identical(var3, NA)) varid_list[[3]] <- varid3
+  if (!identical(var4, NA)) varid_list[[4]] <- varid4
+  if (!identical(var5, NA)) varid_list[[5]] <- varid5
 
   ## Create file
   nc <- ncdf4::nc_create(outfilnam, varid_list, verbose = verbose)
