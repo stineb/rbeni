@@ -13,7 +13,7 @@
 #' @return
 #' @export
 #'
-regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", returnobj = FALSE, lonout = NA, latout = NA){
+regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "", returnobj = FALSE, lonout = NA, latout = NA){
 
   if (method == "max"){
 

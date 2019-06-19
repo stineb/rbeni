@@ -52,8 +52,8 @@ write_nc2 <- function(var,
                       filnam_template = NA,
                       lonnam_template = "lon",
                       latnam_template = "lat",
-                      lon = seq(dim(var)[1]),
-                      lat = seq(dim(var)[2]),
+                      lon = NA,
+                      lat = NA,
                       z_dim = NA,
                       time  = NA,
                       make_zdim = FALSE,
@@ -86,8 +86,8 @@ write_nc2 <- function(var,
   if (is.element("vars", ls(var)) && is.element("lat", ls(var)) && is.element("lon", ls(var))){
     obj <- var
     var <- obj$vars[[1]]
-    lon <- obj$lon
-    lat <- obj$lat
+    if (identical(lon, NA)) lon <- obj$lon
+    if (identical(lat, NA)) lat <- obj$lat
     if ("time" %in% ls(obj)){
       make_tdim <- TRUE
     } else{
@@ -117,6 +117,9 @@ write_nc2 <- function(var,
 
 
   } else {
+
+    if (identical(lon, NA)) lon <- seq(dim(var)[1])
+    if (identical(lat, NA)) lat <- seq(dim(var)[2])
 
     ## Checks
     ## Get the dimensionality of 'var' and whether the dimension vector provided fit.
