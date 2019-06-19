@@ -4,15 +4,16 @@
 \alias{nc_to_df}
 \title{NetCDF to data frame}
 \usage{
-nc_to_df(ncfilnam, varnam, do_get_ilon_ilat = FALSE)
+nc_to_df(obj, varnam, do_get_ilon_ilat = FALSE)
 }
 \arguments{
-\item{ncfilnam}{A character string specifying the NetCDF file to be read.}
-
 \item{varnam}{A character string specifying the variable name in the NetCDF file.}
 
 \item{do_get_ilon_ilat}{A boolean specifying whether longitude and latitude
 indices are added to the data frame. Defaults to \code{FALSE}.}
+
+\item{nc}{Either character string specifying the NetCDF file path to be read or a
+object returned by function \link{read_nc_onefile()}.}
 }
 \value{
 A data frame
