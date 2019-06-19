@@ -13,7 +13,7 @@
 #' @return
 #' @export
 #'
-regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", returnobj = FALSE){
+regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", returnobj = FALSE, lonout = NA, latout = NA){
 
   if (method == "max"){
 
@@ -36,6 +36,15 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", re
       fact_x <- dlon / raster::res(rasta)[1]
       dlat <- 0.5
       fact_y <- dlat / raster::res(rasta)[2]
+
+    } else if (!identical(NA, lonout)){
+      dlon <- lonout[2] - lonout[1]
+      fact_x <- dlon / raster::res(rasta)[1]
+      if (!identical(NA, latout)){
+        dlat <- latout[2] - latout[1]
+        fact_y <- dlat / raster::res(rasta)[1]
+      }
+
     }
 
     ## regrid by maximum (same aggregation factor in x and y directions)
@@ -53,7 +62,7 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "halfdeg", re
     nc_hires <- read_nc_onefile(filn_orig)
     nc_lores <- read_nc_onefile(filn_out)
     nc_lores$time <- nc_hires$time
-    write_nc2(nc_lores, outfilnam = filn_out)
+    write_nc2(nc_lores, outfilnam = filn_out, lon = lonout, lat = latout)
 
     ## read back in as rbeni::nc object
     if (!returnobj){
