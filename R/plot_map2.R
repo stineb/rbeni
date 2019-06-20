@@ -33,6 +33,7 @@ plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered 
     names(df) <- c("layer", "x", "y")
 
   } else if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
+
     ## is a rbeni-nc element
     df <- nc_to_df(obj) %>%
       rename(x=lon, y=lat)
@@ -78,7 +79,7 @@ plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered 
     vec_colors <- c( "wheat", "tomato2", "tomato4", "orchid4" )
   }
 
-  if (is.na(breaks)){
+  if (identical(NA, breaks)){
     breaks <- seq(0, maxval, length.out = (nbin+1))
     if (is.na(maxval)) maxval <- quantile(df$layer, 0.99, na.rm = TRUE) %>% ceiling()
   } else {

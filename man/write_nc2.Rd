@@ -5,14 +5,14 @@
 \title{Write array to a NetCDF file}
 \usage{
 write_nc2(var, varnam = "varnam", filnam_template = NA,
-  lonnam_template = "lon", latnam_template = "lat",
-  lon = seq(dim(var)[1]), lat = seq(dim(var)[2]), z_dim = NA,
-  time = NA, make_zdim = FALSE, make_tdim = FALSE,
-  outfilnam = "out.nc", nvars = 1, var2 = NA, varnam2 = NA,
-  var3 = NA, varnam3 = NA, var4 = NA, varnam4 = NA, var5 = NA,
-  varnam5 = NA, verbose = FALSE, lonnam = "lon", latnam = "lat",
-  zdimnam = "z", timenam = "time", units_lon = "degrees_east",
-  units_lat = "degrees_north", units_var1 = "", units_var2 = "",
+  lonnam_template = "lon", latnam_template = "lat", lon = NA,
+  lat = NA, z_dim = NA, time = NA, make_zdim = FALSE,
+  make_tdim = FALSE, outfilnam = "out.nc", nvars = 1, var2 = NA,
+  varnam2 = NA, var3 = NA, varnam3 = NA, var4 = NA, varnam4 = NA,
+  var5 = NA, varnam5 = NA, verbose = FALSE, lonnam = "lon",
+  latnam = "lat", zdimnam = "z", timenam = "time",
+  units_lon = "degrees_east", units_lat = "degrees_north",
+  units_var1 = "", units_var2 = "",
   units_time = "days since 2001-1-1 0:0:0", units_zdim = "",
   long_name_var1 = "", long_name_var2 = "", missing_value = -9999,
   att_title = "", att_history = "")

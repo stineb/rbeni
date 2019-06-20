@@ -22,19 +22,46 @@ read_nc_onefile <- function(filn){
     sink(paste0(filn, ".txt"))
     print(nc)
     sink()
+    unlink(paste0(filn, ".txt"))
   }
+
+  ## get names of longitude and latitude dimensions
+  dimnames <- ls(nc$dim)
+  if (!("lon" %in% dimnames)){
+    if ("LON" %in% dimnames){
+      lonname <- "LON"
+    } else if ("longitude" %in% dimnames){
+      lonname <- "longitude"
+    } else if ("Longitude" %in% dimnames){
+      lonname <- "Longitude"
+    }
+  } else {
+    lonname <- "lon"
+  }
+  if (!("lat" %in% dimnames)){
+    if ("LAT" %in% dimnames){
+      latname <- "LAT"
+    } else if ("latitude" %in% dimnames){
+      latname <- "latitude"
+    } else if ("Latitude" %in% dimnames){
+      latname <- "Latitude"
+    }
+  } else {
+    latname <- "lat"
+  }
+
 
   if (is.null(nc$dim$time)){
     ## no time dimension
     out <- list(
-      lon = ncdf4::ncvar_get(nc, nc$dim$lon$name),
-      lat = ncdf4::ncvar_get(nc, nc$dim$lat$name)
+      lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
+      lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name)
     )
   } else {
     ## with time dimension
     out <- list(
-      lon = ncdf4::ncvar_get(nc, nc$dim$lon$name),
-      lat = ncdf4::ncvar_get(nc, nc$dim$lat$name),
+      lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
+      lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name),
       time = ncdf4::ncvar_get(nc, nc$dim$time$name)
     )
 

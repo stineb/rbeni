@@ -48,7 +48,7 @@ regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "", returnobj
     }
 
     ## regrid by maximum (same aggregation factor in x and y directions)
-    rasta_lores <- raster::aggregate( x = rasta, fact = fact_x, fun = max  )
+    rasta_lores <- raster::aggregate( x = rasta, fact = fact_x, fun = max, na.rm = TRUE  )
 
     ## write to file
     dirn <- dirname(filn_orig)

@@ -57,7 +57,7 @@ if ( length(args)==0 ){
     )
 
     if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
-      out$time <- conv_noleap_to_ymd(out$time, since = lubridate::ymd("2001-01-01"))
+      out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
     }
 
     # get variables

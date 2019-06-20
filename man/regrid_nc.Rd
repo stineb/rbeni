@@ -4,8 +4,8 @@
 \alias{regrid_nc}
 \title{Plot a nice map with ggplot.}
 \usage{
-regrid_nc(obj, varname = "", method = "bil", outgrid = "halfdeg",
-  returnobj = FALSE)
+regrid_nc(obj, varname = "", method = "bil", outgrid = "",
+  returnobj = FALSE, lonout = NA, latout = NA)
 }
 \arguments{
 \item{obj}{An object, either a \code{RasterBrick} (returned from a \code{raster::brick()} function call),
