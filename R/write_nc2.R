@@ -261,6 +261,10 @@ write_nc2 <- function(var,
   if (!identical(var4, NA)) varid4 <- ncdf4::ncvar_def(name = varnam4, units = units_var4, dim = dimidlist, missval = missing_value, verbose = verbose)
   if (!identical(var5, NA)) varid5 <- ncdf4::ncvar_def(name = varnam5, units = units_var5, dim = dimidlist, missval = missing_value, verbose = verbose)
 
+  # varid_list <- purrr::map(
+  #   as.list(varnams),
+  #   ~ncdf4::ncvar_def(name = .,  units = "asdf", dim = dimidlist, missval = missing_value, verbose = verbose))
+
   varid_list <- list(varid1)
   if (!identical(var2, NA)) varid_list[[2]] <- varid2
   if (!identical(var3, NA)) varid_list[[3]] <- varid3

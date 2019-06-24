@@ -56,14 +56,15 @@ read_nc_onefile <- function(filn){
     out <- list(
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
       lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name)
-    )
+      )
+    
   } else {
     ## with time dimension
     out <- list(
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
       lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name),
       time = ncdf4::ncvar_get(nc, nc$dim$time$name)
-    )
+      )
 
     ## convert to date
     if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
