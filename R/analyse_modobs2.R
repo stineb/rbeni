@@ -42,6 +42,7 @@ analyse_modobs2 <- function(
 
   ## rename to 'mod' and 'obs' and remove rows with NA in mod or obs
   df <- df %>%
+    as_tibble() %>%
     ungroup() %>%
     dplyr::select(mod=mod, obs=obs) %>%
     tidyr::drop_na(mod, obs)
@@ -65,12 +66,21 @@ analyse_modobs2 <- function(
     dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) )
 
-  rsq_lab <- format( df_metrics %>% filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 2 )
-  rmse_lab <- format( df_metrics %>% filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 3 )
-  mae_lab <- format( df_metrics %>% filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 3 )
-  bias_lab <- format( df_metrics %>% filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 3 )
-  slope_lab <- format( df_metrics %>% filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 3 )
-  n_lab <- format( df_metrics %>% filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname(), digits = 3 )
+  rsq_val <- df_metrics %>% filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  rmse_val <- df_metrics %>% filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  mae_val <- df_metrics %>% filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  bias_val <- df_metrics %>% filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  slope_val <- df_metrics %>% filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  n_val <- df_metrics %>% filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+
+  rsq_lab <- format( rsq_val, digits = 2 )
+  rmse_lab <- format( rmse_val, digits = 3 )
+  mae_lab <- format( mae_val, digits = 3 )
+  bias_lab <- format( bias_val, digits = 3 )
+  slope_lab <- format( slope_val, digits = 3 )
+  n_lab <- format( n_val, digits = 3 )
+
+  results <- tibble( rsq = rsq_val, rmse = rmse_val, mae = mae_val, bias = bias_val, slope = slope_val, n = n_val )
 
   if (type=="heat"){
 
@@ -94,7 +104,8 @@ analyse_modobs2 <- function(
                                 # bias == .(bias_lab) ~~
                                 # slope == .(slope_lab) ~~
                                 # italic(N) == .(n_lab)
-                           ))
+                           )
+        )
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -120,7 +131,8 @@ analyse_modobs2 <- function(
           RMSE == .(rmse_lab) ~~~
           bias == .(bias_lab) ~~~
           slope == .(slope_lab) ~~~
-          italic(N) == .(n_lab) )
+          italic(N) == .(n_lab)
+          )
         )
 
     if (!identical(filnam, NA)) {
@@ -146,7 +158,8 @@ analyse_modobs2 <- function(
                                 RMSE == .(rmse_lab) ~~
                                 bias == .(bias_lab) ~~
                                 slope == .(slope_lab) ~~
-                                italic(N) == .(n_lab) )
+                                italic(N) == .(n_lab)
+                           )
         )
 
     if (!identical(filnam, NA)) {
@@ -155,5 +168,5 @@ analyse_modobs2 <- function(
 
   }
 
-  return(list(df_metrics=df_metrics, gg=gg, linmod=linmod))
+  return(list(df_metrics=df_metrics, gg=gg, linmod=linmod, results = results))
 }

@@ -4,7 +4,8 @@
 \alias{nc_to_df}
 \title{NetCDF to data frame}
 \usage{
-nc_to_df(obj, varnam, do_get_ilon_ilat = FALSE)
+nc_to_df(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE,
+  filn = NA, verbose = FALSE)
 }
 \arguments{
 \item{obj}{Either character string specifying the NetCDF file path to be read or a
@@ -14,9 +15,20 @@ object returned by function \link{read_nc_onefile()}.}
 
 \item{do_get_ilon_ilat}{A boolean specifying whether longitude and latitude
 indices are added to the data frame. Defaults to \code{FALSE}.}
+
+\item{dropna}{A boolean specifying wether rows where the data variable is NA should
+be dropped. Recommended to be set to \code{TRUE} for large global arrays where much
+of the grid is NA (e.g., over ocean).}
+
+\item{filn}{A character string specifying the file name to which the data frame is
+written. If \code{filn = NA} (defaults), the data frame is returned by the function,
+otherwise, \code{NULL} is returned.}
+
+\item{verbose}{A boolean specifying whether progress messages should be written to
+prompt.}
 }
 \value{
-A data frame
+A data frame if \code{filn == NA}, otherwise nothing is returned.
 }
 \description{
 Reads a NetCDF file into a data frame with longitude and latitude

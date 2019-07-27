@@ -7,6 +7,9 @@
 #' @param df A data frame
 #' @param col A character string specifying the column based on which the
 #' removal of consecutive NA values from head and tail is done.
+#' @param extend A logical specifying whether NAs at the head or tail of a
+#' data frame's column (\code{col}) should be filled with the first (last)
+#' non-NA value of the respective column. Defaults to \code{FALSE}.
 #'
 #' @return A reduced data frame, shortened after removing consecutive
 #' NAs from the head and tail of the column (argument \code{col}) of the
@@ -16,7 +19,7 @@
 #'
 #' @examples df <- data.frame( columnname = c(rep(NA, 5), seq(1,10), NA, seq(12,20), rep(NA,10)))
 #' print(cutna_headtail_df(df, "columnname"))
-cutna_headtail_df <- function( df, col ){
+cutna_headtail_df <- function( df, col, extend = FALSE ){
 
   ## Remove (cut) NAs from the head and tail of a vector.
   ## Returns the indexes to be dropped from a vector
@@ -60,7 +63,16 @@ cutna_headtail_df <- function( df, col ){
   }
 
   idxs <- c( idxs_head, idxs_tail )
-  df <- dplyr::slice(df, -idxs)
+
+  if (extend){
+    vec_replace <- vec
+    vec_replace[idxs_head] <- vec_replace[max(idxs_head)+1]
+    vec_replace[idxs_tail] <- vec_replace[min(idxs_tail)-1]
+    df[[col]] <- vec_replace
+  } else {
+    df <- dplyr::slice(df, -idxs)
+  }
+
   #return(idxs)
   return(df)
 

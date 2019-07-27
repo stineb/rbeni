@@ -14,7 +14,7 @@
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered = FALSE, breaks = NA ){
+plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered = FALSE, breaks = NA, grid = "halfdeg" ){
 
   require(rworldmap)
   require(raster)
@@ -25,8 +25,27 @@ plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered 
   data(coastsCoarse)
   sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
 
-  ## convert into data frame with longitude (x) and latitude (y)
-  if (class(obj)[[1]] == "RasterBrick"){
+  if (class(obj)=="matrix"){
+    if (length(dim(grid_mct_20y_v3))==2){
+
+      ## obj is a 2D matrix (grid)
+      if (grid=="halfdeg"){
+        lon <- seq(from = -179.75, to = 179.75, by = 0.5)
+        lat <- seq(from = -89.75, to = 89.75, by = 0.5)
+      } else {
+        lon <- seq(dim(obj)[1])
+        lat <- seq(dim(obj)[2])
+      }
+      df <- grid_to_df(obj, lon, lat) %>%
+        setNames(c("x", "y", "layer"))
+
+    } else {
+      rlang::abort("Aborted. Argument obj is a matrix but does not have two dimensions.")
+    }
+
+  } else if (class(obj)[[1]] == "RasterBrick"){
+
+    ## convert into data frame with longitude (x) and latitude (y)
     ## convert object into data frame
     df_sp <- as(rasta, "SpatialPixelsDataFrame")
     df <- as.data.frame(df_sp)
@@ -36,11 +55,17 @@ plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered 
 
     ## is a rbeni-nc element
     df <- nc_to_df(obj) %>%
-      rename(x=lon, y=lat)
+      rename(x=lon, y=lat) %>%
+      dplyr::select(1:3) %>%
+      setNames(c("x", "y", "layer"))
 
   } else if (is.data.frame(obj)){
+
     ## is already a data frame. thanks.
-    df <- as_tibble(obj)
+    df <- as_tibble(obj) %>%
+      rename(x=lon, y=lat) %>%
+      dplyr::select(1:3) %>%
+      setNames(c("x", "y", "layer"))
 
   }
 
@@ -79,9 +104,11 @@ plot_map2 <- function( obj, nbin = 10, maxval = NA, legend_title = "", centered 
     vec_colors <- c( "wheat", "tomato2", "tomato4", "orchid4" )
   }
 
+  if (identical(NA, maxval)) maxval <- max(df$layer, na.rm = TRUE)
+
   if (identical(NA, breaks)){
     breaks <- seq(0, maxval, length.out = (nbin+1))
-    if (is.na(maxval)) maxval <- quantile(df$layer, 0.99, na.rm = TRUE) %>% ceiling()
+    if (is.na(maxval)) maxval <- ceiling(quantile(df$layer, 0.99, na.rm = TRUE))
   } else {
     nbin <- length(breaks) - 1
     maxval <- max(breaks)

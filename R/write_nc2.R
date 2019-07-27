@@ -83,38 +83,41 @@ write_nc2 <- function(var,
                       ){
 
   ## If 'var' is a rbeni-nc element, then no additional info about dimensions must be provided
-  if (is.element("vars", ls(var)) && is.element("lat", ls(var)) && is.element("lon", ls(var))){
-    obj <- var
-    var <- obj$vars[[1]]
-    if (identical(lon, NA)) lon <- obj$lon
-    if (identical(lat, NA)) lat <- obj$lat
-    if ("time" %in% ls(obj)){
-      make_tdim <- TRUE
-    } else{
-      make_tdim <- FALSE
-    }
-    if (length(ls(obj))>5){
-      make_zdim <- TRUE
-    } else {
-      make_zdim <- FALSE
-    }
-    if (make_tdim) time <- obj$time
-    if (make_zdim){
-      varnams <- names(obj)
-      zdimname <- varnams[-which(varnams=="lon" | varnams=="lat" | varnams=="time" | varnams=="vars" | varnams=="varnams")]
-      z_dim <- obj[[zdimname]]
-    }
-    varnam <- obj$varnams[[1]]
-    nvars <- length(obj$varnams)
-    if (length(obj$varnams)>1) var2 <- obj$vars[[2]]
-    if (length(obj$varnams)>2) var3 <- obj$vars[[3]]
-    if (length(obj$varnams)>3) var4 <- obj$vars[[4]]
-    if (length(obj$varnams)>4) var5 <- obj$vars[[5]]
-    if (length(obj$varnams)>1) varnam2 <- obj$varnams[[2]]
-    if (length(obj$varnams)>2) varnam3 <- obj$varnams[[3]]
-    if (length(obj$varnams)>3) varnam4 <- obj$varnams[[4]]
-    if (length(obj$varnams)>4) varnam5 <- obj$varnams[[5]]
+  if (is.list(var)){
 
+    if (is.element("vars", ls(var)) && is.element("lat", ls(var)) && is.element("lon", ls(var))){
+      obj <- var
+      var <- obj$vars[[1]]
+      if (identical(lon, NA)) lon <- obj$lon
+      if (identical(lat, NA)) lat <- obj$lat
+      if ("time" %in% ls(obj)){
+        make_tdim <- TRUE
+      } else{
+        make_tdim <- FALSE
+      }
+      if (length(ls(obj))>5){
+        make_zdim <- TRUE
+      } else {
+        make_zdim <- FALSE
+      }
+      if (make_tdim) time <- obj$time
+      if (make_zdim){
+        varnams <- names(obj)
+        zdimname <- varnams[-which(varnams=="lon" | varnams=="lat" | varnams=="time" | varnams=="vars" | varnams=="varnams")]
+        z_dim <- obj[[zdimname]]
+      }
+      varnam <- obj$varnams[[1]]
+      nvars <- length(obj$varnams)
+      if (length(obj$varnams)>1) var2 <- obj$vars[[2]]
+      if (length(obj$varnams)>2) var3 <- obj$vars[[3]]
+      if (length(obj$varnams)>3) var4 <- obj$vars[[4]]
+      if (length(obj$varnams)>4) var5 <- obj$vars[[5]]
+      if (length(obj$varnams)>1) varnam2 <- obj$varnams[[2]]
+      if (length(obj$varnams)>2) varnam3 <- obj$varnams[[3]]
+      if (length(obj$varnams)>3) varnam4 <- obj$varnams[[4]]
+      if (length(obj$varnams)>4) varnam5 <- obj$varnams[[5]]
+
+    }
 
   } else {
 

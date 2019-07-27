@@ -28,78 +28,15 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
     if (verbose) print(paste("Reading ", obj, "..."))
 
     # a character is provided by 'obj' -> read file into rbeni-nc object
-
-    # get land mask (data frame with lon, lat, ilon, and ilat for each land cell)
-    nc <- ncdf4::nc_open(obj)
-    {
-      sink(paste0(obj, ".txt"))
-      print(nc)
-      sink()
-      unlink(paste0(obj, ".txt"))
-    }
-
-    ## get names of longitude and latitude dimensions
-    dimnames <- ls(nc$dim)
-    if (!("lon" %in% dimnames)){
-      if ("LON" %in% dimnames){
-        lonname <- "LON"
-      } else if ("longitude" %in% dimnames){
-        lonname <- "longitude"
-      } else if ("Longitude" %in% dimnames){
-        lonname <- "Longitude"
-      }
-    } else {
-      lonname <- "lon"
-    }
-    if (!("lat" %in% dimnames)){
-      if ("LAT" %in% dimnames){
-        latname <- "LAT"
-      } else if ("latitude" %in% dimnames){
-        latname <- "latitude"
-      } else if ("Latitude" %in% dimnames){
-        latname <- "Latitude"
-      }
-    } else {
-      latname <- "lat"
-    }
-
-    if (is.null(nc$dim$time)){
-
-      ## no time dimension
-      nc2 <- list(
-        lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
-        lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name)
-        )
-
-    } else {
-
-      ## with time dimension
-      hastime <- TRUE
-      nc2 <- list(
-        lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
-        lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name),
-        time = ncdf4::ncvar_get(nc, nc$dim$time$name)
-        )
-
-      ## convert to date
-      if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
-        nc2$time <- conv_noleap_to_ymd(nc2$time, origin = lubridate::ymd("2001-01-01"))
-      }
-
-    }
-
-    # get data variable
-    myvar <- ncdf4::ncvar_get(nc, varnam)
-    ncdf4::nc_close(nc)
-
+    nc <- read_nc_onefile(obj)
 
   } else if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
 
     # an rbeni-nc object is provided by 'obj'
-    nc2 <- obj
+    nc <- obj
     rm("obj")
 
-    if (is.element("time", ls(nc2))){
+    if (is.element("time", ls(nc))){
       hastime <- TRUE
     }
 
@@ -109,13 +46,13 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
   if (verbose) print("Expanding data ...")
   if (hastime){
 
-    df <- expand.grid(nc2$lon, nc2$lat, nc2$time) %>%
+    df <- expand.grid(nc$lon, nc$lat, nc$time) %>%
       setNames(c("lon", "lat", "time")) %>%
       as_tibble()
 
   } else {
 
-    df <- expand.grid(nc2$lon, nc2$lat) %>%
+    df <- expand.grid(nc$lon, nc$lat) %>%
       setNames(c("lon", "lat")) %>%
       as_tibble()
 
@@ -123,7 +60,7 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
 
   # add data variable as column
   df <- df %>%
-    dplyr::bind_cols(tibble(myvar = as.vector(nc2$vars[[1]])))
+    dplyr::bind_cols(tibble(myvar = as.vector(nc$vars[[1]])))
 
   if (dropna){
     if (verbose) print("Dropping NAs ...")

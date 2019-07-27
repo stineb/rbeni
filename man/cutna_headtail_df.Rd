@@ -4,13 +4,17 @@
 \alias{cutna_headtail_df}
 \title{Reduces the rows of a data frame based on the removal of NA values}
 \usage{
-cutna_headtail_df(df, col)
+cutna_headtail_df(df, col, extend = FALSE)
 }
 \arguments{
 \item{df}{A data frame}
 
 \item{col}{A character string specifying the column based on which the
 removal of consecutive NA values from head and tail is done.}
+
+\item{extend}{A logical specifying whether NAs at the head or tail of a
+data frame's column (\code{col}) should be filled with the first (last)
+non-NA value of the respective column. Defaults to \code{FALSE}.}
 }
 \value{
 A reduced data frame, shortened after removing consecutive

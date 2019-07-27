@@ -10,7 +10,7 @@
 #' @param outgrid Use \code{outgrid = "halfdeg"} to regrid to half-degree grid (spanning -179.75 to 179.75 in
 #' longitude, and -89.75 to 89.75 in latitude).
 #' @param returnobj A boolean.
-#' @return
+#' @return If argument \code{retrunobj = TRUE}, the regridded object is returned.
 #' @export
 #'
 regrid_nc <- function(obj, varname = "", method = "bil", outgrid = "", returnobj = FALSE, lonout = NA, latout = NA){

@@ -21,6 +21,9 @@ longitude, and -89.75 to 89.75 in latitude).}
 
 \item{returnobj}{A boolean.}
 }
+\value{
+If argument \code{retrunobj = TRUE}, the regridded object is returned.
+}
 \description{
 Returns a ggplot object for a global map plot.
 }
