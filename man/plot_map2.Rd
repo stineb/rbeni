@@ -5,7 +5,7 @@
 \title{Plot a nice map with ggplot.}
 \usage{
 plot_map2(obj, nbin = 10, maxval = NA, legend_title = "",
-  centered = FALSE, breaks = NA)
+  centered = FALSE, breaks = NA, grid = "halfdeg")
 }
 \arguments{
 \item{obj}{An object, either a \code{RasterBrick} (returned from a \code{raster::brick()} function call),
