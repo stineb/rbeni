@@ -13,7 +13,7 @@ write_nc2(var, varnam = "varnam", filnam_template = NA,
   latnam = "lat", zdimnam = "z", timenam = "time",
   units_lon = "degrees_east", units_lat = "degrees_north",
   units_var1 = "", units_var2 = "",
-  units_time = "days since 2001-1-1 0:0:0", units_zdim = "",
+  units_time = "days since 2001-01-01", units_zdim = "",
   long_name_var1 = "", long_name_var2 = "", missing_value = -9999,
   att_title = "", att_history = "")
 }

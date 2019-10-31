@@ -73,7 +73,7 @@ write_nc2 <- function(var,
                       units_lat      = "degrees_north",
                       units_var1     = "",
                       units_var2     = "",
-                      units_time     = "days since 2001-1-1 0:0:0",
+                      units_time     = "days since 2001-01-01",
                       units_zdim     = "",
                       long_name_var1 = "",
                       long_name_var2 = "",
@@ -100,7 +100,16 @@ write_nc2 <- function(var,
       } else {
         make_zdim <- FALSE
       }
-      if (make_tdim) time <- obj$time
+      if (make_tdim){
+        if (units_time=="days since 2000-01-01"){
+          time <- as.integer(obj$time - lubridate::ymd("2000-01-01"))
+        } else if (units_time=="days since 2001-01-01"){
+          time <- as.integer(obj$time - lubridate::ymd("2001-01-01"))
+        } else {
+          time <- obj$time
+        }
+      }
+
       if (make_zdim){
         varnams <- names(obj)
         zdimname <- varnams[-which(varnams=="lon" | varnams=="lat" | varnams=="time" | varnams=="vars" | varnams=="varnams")]
@@ -242,7 +251,7 @@ write_nc2 <- function(var,
     if (verbose) {print("define dimensions...")}
     lonid                 <- ncdf4::ncdim_def(lonnam,  units = units_lon,  vals = lon,   longname = "Longitude (East)")
     latid                 <- ncdf4::ncdim_def(latnam,  units = units_lat,  vals = lat,   longname = "Latitude (North)")
-    if (make_zdim) zid    <- ncdf4::ncdim_def(zdimnam, units = units_zdim, vals = z_dim, longname = "")
+    if (make_zdim) zid    <- ncdf4::ncdim_def(zdimnam, units = units_zdim, vals = z_dim, longname = "z")
     if (make_tdim) timeid <- ncdf4::ncdim_def(timenam, units = units_time, vals = time,  longname = "Time")
 
     dimidlist <- list(lonid, latid)

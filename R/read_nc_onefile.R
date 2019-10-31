@@ -57,7 +57,7 @@ read_nc_onefile <- function(filn){
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
       lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name)
       )
-    
+
   } else {
     ## with time dimension
     out <- list(
@@ -68,9 +68,29 @@ read_nc_onefile <- function(filn){
 
     ## convert to date
     if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
-      out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
-    }
 
+      out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
+
+    } else if (nc$dim$time$units=="days since 2000-01-01"){
+
+      time_origin <- lubridate::ymd("2000-01-01")
+      out$time <- lubridate::days(out$time) + time_origin
+
+    } else if (nc$dim$time$units=="days since 2001-01-01"){
+
+      time_origin <- lubridate::ymd("2001-01-01")
+      out$time <- lubridate::days(out$time) + time_origin
+
+    } else if (nc$dim$time$units=="days since 1900-1-1"){
+
+      time_origin <- lubridate::ymd("1900-01-01")
+      out$time <- lubridate::days(out$time) + time_origin
+
+    } else {
+
+      print("units of time not recognized")
+
+    }
   }
 
   # get variables
