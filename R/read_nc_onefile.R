@@ -4,6 +4,11 @@
 #'
 #' @param filn A character string specifying the full path of the NetCDF
 #' file to be read.
+#' @param date_origin A character string of format \code{"YYYY-MM-DD"}
+#' specifying the origin, day 0, of the time values provided in the NetCDF file.
+#' @param time_is_years A logical specifying whether the values provided by dimension
+#' \code{'time'} is years. Defaults to \code{FALSE}.
+#'
 #' @return A list, containing \code{"lon"} (vector of longitudes of
 #' gridcell mid-points), \code{"lat"} (vector of latitudes of gridcell
 #' mid-points), \code{"time"} (vector of lubridate::ymd dates),
@@ -12,7 +17,7 @@
 #' variable.
 #' @export
 #'
-read_nc_onefile <- function(filn){
+read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
 
   require(dplyr)
 
@@ -67,29 +72,47 @@ read_nc_onefile <- function(filn){
       )
 
     ## convert to date
-    if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
+    if (time_is_years){
 
-      out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
+      ## interpret time as first of january
+      out$time <- lubridate::ymd(paste0(out$time, "-01-01"))
 
-    } else if (nc$dim$time$units=="days since 2000-01-01"){
+    } else if (!is.na(date_origin)){
 
-      time_origin <- lubridate::ymd("2000-01-01")
-      out$time <- lubridate::days(out$time) + time_origin
-
-    } else if (nc$dim$time$units=="days since 2001-01-01"){
-
-      time_origin <- lubridate::ymd("2001-01-01")
-      out$time <- lubridate::days(out$time) + time_origin
-
-    } else if (nc$dim$time$units=="days since 1900-1-1"){
-
-      time_origin <- lubridate::ymd("1900-01-01")
+      time_origin <- lubridate::ymd(date_origin)
       out$time <- lubridate::days(out$time) + time_origin
 
     } else {
 
-      print("units of time not recognized")
+      if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
 
+        out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
+
+      } else if (nc$dim$time$units=="days since 2000-01-01"){
+
+        time_origin <- lubridate::ymd("2000-01-01")
+        out$time <- lubridate::days(out$time) + time_origin
+
+      } else if (nc$dim$time$units=="days since 2001-01-01"){
+
+        time_origin <- lubridate::ymd("2001-01-01")
+        out$time <- lubridate::days(out$time) + time_origin
+
+      } else if (nc$dim$time$units=="days since 1900-1-1"){
+
+        time_origin <- lubridate::ymd("1900-01-01")
+        out$time <- lubridate::days(out$time) + time_origin
+
+      } else if (nc$dim$time$units=="days since 1970-01-01 00:00:00"){
+
+        time_origin <- lubridate::ymd("1970-01-01")
+        out$time <- lubridate::days(out$time) + time_origin
+
+      } else {
+
+        rlang::abort(paste("units of time not recognized for file", filn))
+
+      }
     }
   }
 

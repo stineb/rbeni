@@ -4,11 +4,17 @@
 \alias{read_nc_onefile}
 \title{Reads a NetCDF file}
 \usage{
-read_nc_onefile(filn)
+read_nc_onefile(filn, date_origin = NA, time_is_years = FALSE)
 }
 \arguments{
 \item{filn}{A character string specifying the full path of the NetCDF
 file to be read.}
+
+\item{date_origin}{A character string of format \code{"YYYY-MM-DD"}
+specifying the origin, day 0, of the time values provided in the NetCDF file.}
+
+\item{time_is_years}{A logical specifying whether the values provided by dimension
+\code{'time'} is years. Defaults to \code{FALSE}.}
 }
 \value{
 A list, containing \code{"lon"} (vector of longitudes of

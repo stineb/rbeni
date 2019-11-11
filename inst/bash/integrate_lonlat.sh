@@ -11,7 +11,7 @@
 
 	if [ -z "$3" ]
 	then
-		echo "Crating own mask..."
+		echo "Assuming all gridcells are 100% land..."
 		cdo div tmp.nc tmp.nc ones.nc
 		cdo selname,gpp ones.nc mask.nc
 		cdo mul mask.nc gridarea.nc gridarea_masked.nc
