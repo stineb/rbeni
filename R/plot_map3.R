@@ -10,16 +10,16 @@
 #' @param breaks A numeric vector specifying the breaks for the color scale. Defaults to \code{NA}, i.e. breaks
 #' are determined automatically based on \code{nbin} and \code{maxval}.
 #' @param plot_title A character string specifying the plot title
+#' @param plot_subtitle A character string specifying the plot subtitle
 #' @param legend_title A character string specifying the legend title (annotation above the color key)
-#' @param centered A boolean specifying whether a centered color scale should be used. Defaults to \code{FALSE}.
 #' @param colorscale A function that returns a set of colors. Defaults to \code{NA}.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
-#' 
+#'
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "", colorscale = NA, do_reproj = FALSE, centered = FALSE,
-											plot_title = ""){
+plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "", colorscale = NA, do_reproj = FALSE,
+											plot_title = "", plot_subtitle = "", ...){
 
 	library(rworldmap)
 	library(cowplot)
@@ -28,7 +28,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "
 	data(coastsCoarse)
 
 	sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
-	
+
 	##---------------------------------------------
 	## interpret object
 	##---------------------------------------------
@@ -42,7 +42,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "
 		##---------------------------------------------
 		# declare incoming CSR (should be done wayyyyyyy earlier than this)
 		if (do_reproj){
-		  crs(rasta) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0" 
+		  crs(rasta) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 		  rasta_reproj <- projectRaster(rasta, crs=CRS("+proj=robin"))
 		} else {
 		  rasta_reproj <- rasta
@@ -105,112 +105,123 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "
 
 
 	##---------------------------------------------
-	## Bin data 
-	##---------------------------------------------		
+	## Bin data
+	##---------------------------------------------
 	if (identical(NA, breaks)){
 	  breaks <- scales::pretty_breaks(n = nbin)(df$layer)
 	}
-	df$layercut <- cut(df$layer, breaks=breaks)
 
-	# remove symbols from category-strings to make them nicer in the legend
-	df$layercut <- gsub("\\(|\\]", "", df$layercut)
-	df$layercut <- gsub("\\,", " - ", df$layercut)
+	toptriangle <- FALSE
+	bottomtriangle <- FALSE
+	breaks_with <- breaks
+	if (is.infinite(breaks[length(breaks)])){
+	  toptriangle <- TRUE
+	  breaks <- breaks[-(length(breaks)-1)]
+	}
+	if (is.infinite(breaks[1])){
+	  bottomtriangle <- TRUE
+	  breaks <- breaks[-2]
+	}
+
+	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE))
+
+	# # remove symbols from category-strings to make them nicer in the legend
+	# df$layercut <- gsub("\\(|\\]", "", df$layercut)
+	# df$layercut <- gsub("\\,", " - ", df$layercut)
 
 	##---------------------------------------------
 	## Create color scale
 	##---------------------------------------------
-	if (identical(NA, colorscale)){
-		
-	  n_breaks <- length(unique(df$layercut))
+	n_colors <- length(breaks) - 1
 
-		if (centered){
-		  vec_colors <- c( "royalblue4", "royalblue2", "wheat", "tomato2", "tomato4" )
-		} else {
-		  vec_colors <- c( "wheat", "tomato2", "tomato4" )
-		}
+	if (identical("mycentered", colorscale)){
+	  vec_colors <- c( "royalblue4", "royalblue2", "wheat", "tomato2", "tomato4" )
+		colorscale  <- colorRampPalette( vec_colors )( n_colors )
 
-		colorscale  <- colorRampPalette( vec_colors )( n_breaks )
+	} else if (identical("mygradient", colorscale)){
+
+	  vec_colors <- c( "wheat", "tomato2", "tomato4" )
+	  colorscale  <- colorRampPalette( vec_colors )( n_colors )
 
 	} else {
 
-	  colorscale <- colorscale(n_breaks-1)
+	  colorscale <- colorscale(n_colors)
 
 	}
-	
+
+	if (toptriangle){
+	  colorscale <- c(colorscale, colorscale[length(colorscale)])
+	}
+	if (bottomtriangle){
+	  colorscale <- c(colorscale[1], colorscale)
+	}
+
 	##---------------------------------------------
 	## map theme
 	##---------------------------------------------
 
 	theme_map <- theme_grey() +    # theme_minimal()
 	  theme(
-	    
+
 	    plot.title = element_text(hjust = 0, face="bold", size = 18),
-	    
+
 	    legend.position = "right", # c(0.07, 0.35), #"left"
 	    # legend.key.size = unit(c(5, 1), "mm"),
 	    legend.title=element_text(size=12),
 	    legend.text=element_text(size=10),
-	    
+
 	    # axis.line = element_blank(),
 	    # axis.text = element_blank(),
 	    # axis.title = element_blank(),
-	    
+
 	    # panel.grid.major = element_blank(),
 	    panel.grid.minor = element_blank()
 	    # plot.margin = unit( c(0, 0, 0, 5) , "mm")
 	  )
-	
+
 	# define labels
 	lat.labels <- seq(-90, 90, 30)
 	lat.short  <- seq(-90, 90, 10)
 	lon.labels <- seq(-180, 180, 60)
 	lon.short  <- seq(-180, 180, 10)
-	
+
 	a <- sapply( lat.labels, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
 	b <- sapply( lon.labels, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)})
-	
-	
+
+
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
 	ggmap <- ggplot() +
-		
+
 		# background countries
 	  geom_polygon(data=sPDF, aes(long, lat, group=group), color=NA, fill='grey95') +
-	  
+
 		# rasta_reproj grid
 		geom_tile(data=df, aes(x=x, y=y, fill=layercut), show.legend = FALSE) +
-		
+
 		# Coastline
 		geom_path(data=coastsCoarse, aes(long, lat, group=group), color='black') +
-	  
+
 
     scale_fill_manual(values=colorscale) +
-	  
+
     scale_x_continuous(expand = c(0,0), limits = c(-180,180), breaks = lon.labels, labels = b) +
     scale_y_continuous(expand = c(0,0), limits = c(-60,85),   breaks = lat.labels, labels = a) +
 
-	  labs( x = "", y = "", title = plot_title)
-    
+	  labs( x = "", y = "", title = plot_title, subtitle = plot_subtitle)
+
 
 	gglegend <- plot_discrete_cbar(
-		breaks           = breaks, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
+		breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
 		colors           = colorscale,
-		direction        = 1, # Flip colors? Can be 1 or -1
-		spacing          = "natural", # Spacing between labels. Can be "natural" or "constant"
-		border_color     = NA, # NA = no border color
 		legend_title     = legend_title,
-		legend_direction = "vertical", # Can be "horizontal" or "vertical"
-		font_size        = 3.5,
-		expand_size_y    = 0.5, 
-		expand_size      = 0, # Controls spacing around legend plot
-		spacing_scaling  = 0.3, # Multiplicative factor for label and legend title spacing
-		width            = 0.02, # Thickness of color bar
-		triangle_size    = 0.1 # Relative width of +-Inf triangles
+		legend_direction = "vertical",
+		...
     )
 
-	ggcow <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.1))
-	
+	ggcow <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.2))
+
   return(ggcow)
 }
 
@@ -226,12 +237,12 @@ plot_discrete_cbar = function(
     border_color = NA, # NA = no border color
     legend_title = NULL,
     legend_direction = "horizontal", # Can be "horizontal" or "vertical"
-    font_size = 5,
-    expand_size = 1, # Controls spacing around legend plot
-    expand_size_y = 1,
-    spacing_scaling = 1, # Multiplicative factor for label and legend title spacing
-    width = 0.1, # Thickness of color bar
-    triangle_size = 0.1 # Relative width of +-Inf triangles
+    font_size = 3.5,
+    expand_size = 0, # Controls spacing around legend plot
+    expand_size_y = 0.8,
+    spacing_scaling = 0.3, # Multiplicative factor for label and legend title spacing
+    width = 0.02, # Thickness of color bar
+    triangle_size = 0.05 # Relative width of +-Inf triangles
     ) {
 
     require(ggplot2)
@@ -334,7 +345,7 @@ plot_discrete_cbar = function(
     cbar_plot <- cbar_plot +
         geom_segment(data = data.frame(y = breaks, yend = breaks),
             aes(y=y, yend=yend),
-            x = x - 0.01 * mul * spacing_scaling, xend = xend,
+            x = x - 0.01 * mul * spacing_scaling, xend = x, #+ 0.01 * mul * spacing_scaling, # xend = xend,
             inherit.aes = FALSE) +
         annotate(geom = 'text', x = x - 0.02 * mul * spacing_scaling, y = breaks,
                 label = labels,

@@ -39,6 +39,9 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
     if (is.element("time", ls(nc))){
       hastime <- TRUE
     }
+    if (length(dim(nc$vars[[1]]))==2){
+      hastime <- FALSE
+    }
 
   }
 
