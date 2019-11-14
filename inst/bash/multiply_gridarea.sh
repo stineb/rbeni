@@ -12,14 +12,13 @@
 	then
 		echo "Crating own mask..."
 		cdo div $1 $1 mask.nc
-		cdo -O selname,SIF mask.nc mask.nc
 		cdo mul mask.nc gridarea.nc gridarea_masked.nc
 	else
 		echo "Using land mask provided as input..."
-		cdo mul $3 gridarea.nc gridarea_masked.nc
+		cdo mul gridarea.nc $3 gridarea_masked.nc
 	fi
 
-	cdo mul gridarea_masked.nc $1 $2
+	cdo mul $1 gridarea_masked.nc $2
 
 	## remove temporary files
 	rm gridarea.nc gridarea_masked.nc mask.nc

@@ -4,8 +4,17 @@
 \alias{analyse_modobs2}
 \title{Analyse modelled values versus observed data.}
 \usage{
-analyse_modobs2(df, mod, obs, type = "points", filnam = NA,
-  xlim = NULL, ylim = NULL, use_factor = NULL, ...)
+analyse_modobs2(
+  df,
+  mod,
+  obs,
+  type = "points",
+  filnam = NA,
+  xlim = NULL,
+  ylim = NULL,
+  use_factor = NULL,
+  ...
+)
 }
 \arguments{
 \item{df}{A data frame containing columns with names corresponding to arguments

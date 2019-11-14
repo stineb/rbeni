@@ -4,8 +4,14 @@
 \alias{nc_to_df}
 \title{NetCDF to data frame}
 \usage{
-nc_to_df(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE,
-  filn = NA, verbose = FALSE)
+nc_to_df(
+  obj,
+  varnam,
+  do_get_ilon_ilat = FALSE,
+  dropna = FALSE,
+  filn = NA,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{obj}{Either character string specifying the NetCDF file path to be read or a

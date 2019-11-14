@@ -8,10 +8,13 @@
 #' \code{ifil}
 #' @param mean_time A logical specifying whether mean across time steps should be taken. Defaults to \code{TRUE}.
 #' @param varnam (Optional) a variable name
+#' @param mask (Optional) a mask (2D array) corresponding to spatial dimensions of \code{ifil} containing \code{NA}
+#' where values should be masked out.
 #' @return A numeric value or vector of numeric values
 #' @export
 #'
-integrate_lon <- function(ifil, landfil = NA, mean_time = TRUE, varnam = NA, ...){
+integrate_lon <- function(ifil, landfil = NA, mean_time = TRUE, varnam = NA, mask = NA, ...){
+
 
   ofil <- file.path(tempdir(), paste0("ofil_", basename(ifil)))
 
@@ -34,21 +37,26 @@ integrate_lon <- function(ifil, landfil = NA, mean_time = TRUE, varnam = NA, ...
 
   arr <- nc$vars[[ varnam ]]
 
+  ## mask out values
+  if (!identical(NA, mask)){
+    arr[which(is.na(mask))] <- NA
+  }
+
   if (mean_time){
 
     if (length(dim(arr))==3){
-      ## assuming that it has lon, lat, time dimensions
-      ## take sum across lon
-      arr <- apply(arr, c(2,3), FUN = sum, na.rm = TRUE)
+      ## now take mean across time
+      arr <- apply(arr, c(1,2), FUN = mean, na.rm = TRUE)
     }
 
-    ## now take mean across time
-    arr <- apply(arr, 1, FUN = mean)
+    ## now take sum across longitudes
+    arr <- apply(arr, 2, FUN = sum, na.rm = TRUE)
 
     df <- tibble(
       lat = nc$lat,
       var = arr
       ) %>%
+      mutate(var = ifelse(is.nan(var), NA, var)) %>%
       setNames(c("lat", varnam))
 
   } else {

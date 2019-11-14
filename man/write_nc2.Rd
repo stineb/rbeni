@@ -4,25 +4,41 @@
 \alias{write_nc2}
 \title{Write array to a NetCDF file}
 \usage{
-write_nc2(var, varnam = "varnam", filnam_template = NA,
-  lonnam_template = "lon", latnam_template = "lat", lon = NA,
-  lat = NA, z_dim = NA, time = NA, make_zdim = FALSE,
-  make_tdim = FALSE, outfilnam = "out.nc", nvars = 1, var2 = NA,
-  varnam2 = NA, var3 = NA, varnam3 = NA, var4 = NA, varnam4 = NA,
-  var5 = NA, varnam5 = NA, verbose = FALSE, lonnam = "lon",
-  latnam = "lat", zdimnam = "z", timenam = "time",
-  units_lon = "degrees_east", units_lat = "degrees_north",
-  units_var1 = "", units_var2 = "",
-  units_time = "days since 2001-01-01", units_zdim = "",
-  long_name_var1 = "", long_name_var2 = "", missing_value = -9999,
-  att_title = "", att_history = "")
+write_nc2(
+  obj,
+  varnams = NA,
+  filnam_template = NA,
+  lonnam_template = "lon",
+  latnam_template = "lat",
+  lon = NA,
+  lat = NA,
+  z_dim = NA,
+  time = NA,
+  make_zdim = FALSE,
+  make_tdim = FALSE,
+  path = "./out.nc",
+  verbose = FALSE,
+  lonnam = "lon",
+  latnam = "lat",
+  zdimnam = "z",
+  timenam = "time",
+  units_lon = "degrees_east",
+  units_lat = "degrees_north",
+  units = "NA",
+  units_time = "days since 2001-01-01",
+  units_zdim = "",
+  long_names = "NA",
+  missing_value = -9999,
+  att_title = "",
+  att_history = ""
+)
 }
 \arguments{
-\item{var}{Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
+\item{obj}{Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
 The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory. If it's an rbeni-nc object, then no additional
 aruguments are required.}
 
-\item{varnam}{A character string specifying the name of the (first) variable that is written into the NetCDF output.}
+\item{varnams}{A character string (or vector of strings) specifying the name(s) of the variable(s) that is/are written into the NetCDF output.}
 
 \item{filnam_template}{A character string specifying the file name of the template-NetCDF file from which all dimension information is read
 and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all
@@ -44,23 +60,7 @@ dimension specification are overridden.}
 
 \item{make_tdim}{Write a time dimension. If var is 2-dimensional, and \code{time==NA}, create a time dimension of length 1.}
 
-\item{outfilnam}{A character string specifying the name of the NetCDF file to be written.}
-
-\item{var2}{Array written to the file. Must have the same dimensions as \code{var}.}
-
-\item{varnam2}{A character string specifying the name of \code{var2}.}
-
-\item{var3}{Array written to the file. Must have the same dimensions as \code{var}.}
-
-\item{varnam3}{A character string specifying the name of \code{var3}.}
-
-\item{var4}{Array written to the file. Must have the same dimensions as \code{var}.}
-
-\item{varnam4}{A character string specifying the name of \code{var4}.}
-
-\item{var5}{Array written to the file. Must have the same dimensions as \code{var}.}
-
-\item{varnam5}{A character string specifying the name of \code{var5}.}
+\item{path}{A character string specifying the file path of the NetCDF file to be written.}
 
 \item{verbose}{A boolean specifying whether messages are to be returned. Defaults to \code{FALSE}.}
 
@@ -76,17 +76,13 @@ dimension specification are overridden.}
 
 \item{units_lat}{Units of latitude}
 
-\item{units_var1}{Units of \code{var}.}
-
-\item{units_var2}{Units of \code{va2}.}
+\item{units}{Units of variables.}
 
 \item{units_time}{Units of time dimension.}
 
 \item{units_zdim}{Units of z-dimension.}
 
-\item{long_name_var1}{Long name of \code{var}.}
-
-\item{long_name_var2}{Long name of \code{var2}.}
+\item{long_names}{Long name of \code{var}.}
 
 \item{missing_value}{Missing value for all variables.}
 

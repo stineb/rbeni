@@ -4,10 +4,20 @@
 \alias{plot_map}
 \title{Plots an array as a map}
 \usage{
-plot_map(arr, lon = NULL, lat = NULL, lev = c(range(c(arr), na.rm =
-  TRUE), 10), file = NA, coastlines = TRUE, positive = TRUE,
-  toplefttext = NA, toprighttext = NA, color = NA, minval = NA,
-  maxval = NA)
+plot_map(
+  arr,
+  lon = NULL,
+  lat = NULL,
+  lev = c(range(c(arr), na.rm = TRUE), 10),
+  file = NA,
+  coastlines = TRUE,
+  positive = TRUE,
+  toplefttext = NA,
+  toprighttext = NA,
+  color = NA,
+  minval = NA,
+  maxval = NA
+)
 }
 \arguments{
 \item{arr}{A matrix (2D array), interpreted as having longitude in

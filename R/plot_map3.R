@@ -18,8 +18,8 @@
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "", colorscale = NA, do_reproj = FALSE,
-											plot_title = "", plot_subtitle = "", ...){
+plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
+											plot_title = waiver(), plot_subtitle = waiver(), ...){
 
 	library(rworldmap)
 	library(cowplot)
@@ -198,13 +198,13 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = "
 	  geom_polygon(data=sPDF, aes(long, lat, group=group), color=NA, fill='grey95') +
 
 		# rasta_reproj grid
-		geom_tile(data=df, aes(x=x, y=y, fill=layercut), show.legend = FALSE) +
+		geom_tile(data=df, aes(x=x, y=y, fill=layercut, color=layercut), show.legend = FALSE) +
 
 		# Coastline
 		geom_path(data=coastsCoarse, aes(long, lat, group=group), color='black') +
 
-
     scale_fill_manual(values=colorscale) +
+    scale_color_manual(values=colorscale) +
 
     scale_x_continuous(expand = c(0,0), limits = c(-180,180), breaks = lon.labels, labels = b) +
     scale_y_continuous(expand = c(0,0), limits = c(-60,85),   breaks = lat.labels, labels = a) +
@@ -241,7 +241,7 @@ plot_discrete_cbar = function(
     expand_size = 0, # Controls spacing around legend plot
     expand_size_y = 0.8,
     spacing_scaling = 0.3, # Multiplicative factor for label and legend title spacing
-    width = 0.02, # Thickness of color bar
+    width = 0.01, # Thickness of color bar
     triangle_size = 0.05 # Relative width of +-Inf triangles
     ) {
 

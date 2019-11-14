@@ -3,10 +3,10 @@
 #' Writes one or multiple arrays with identical dimensions to a NetCDF file,
 #' creating multiple variables each with the same dimension.
 #'
-#' @param var Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
+#' @param obj Either an rbeni-nc object or an array of size length(lon) x length(lat) x length(z_dim) x length(time).
 #' The order of lon (1st dim), lat (2nd dim), time (last dim) is mandatory. If it's an rbeni-nc object, then no additional
 #' aruguments are required.
-#' @param varnam  A character string specifying the name of the (first) variable that is written into the NetCDF output.
+#' @param varnams A character string (or vector of strings) specifying the name(s) of the variable(s) that is/are written into the NetCDF output.
 #' @param filnam_template A character string specifying the file name of the template-NetCDF file from which all dimension information is read
 #' and used for the NetCDF file created here. Defaults to \code{NA}, meaning that all dimension information has to be spedifyed by the user. Othewise all
 #' dimension specification are overridden.
@@ -18,15 +18,7 @@
 #' @param time    A vector containing the values of the time dimension. Defaults to NA (no time dimension is written).
 #' @param make_zdim Write a z-dimension. If var is 2-dimensional, and \code{z_dim==NA}, create a z-dimension of length 1.
 #' @param make_tdim Write a time dimension. If var is 2-dimensional, and \code{time==NA}, create a time dimension of length 1.
-#' @param outfilnam  A character string specifying the name of the NetCDF file to be written.
-#' @param var2 Array written to the file. Must have the same dimensions as \code{var}.
-#' @param var3 Array written to the file. Must have the same dimensions as \code{var}.
-#' @param var4 Array written to the file. Must have the same dimensions as \code{var}.
-#' @param var5 Array written to the file. Must have the same dimensions as \code{var}.
-#' @param varnam2 A character string specifying the name of \code{var2}.
-#' @param varnam3 A character string specifying the name of \code{var3}.
-#' @param varnam4 A character string specifying the name of \code{var4}.
-#' @param varnam5 A character string specifying the name of \code{var5}.
+#' @param path A character string specifying the file path of the NetCDF file to be written.
 #' @param verbose A boolean specifying whether messages are to be returned. Defaults to \code{FALSE}.
 #' @param lonnam Longitude name
 #' @param latnam Latitude name
@@ -34,12 +26,10 @@
 #' @param timenam Time dimension name
 #' @param units_lon Units of longitude
 #' @param units_lat Units of latitude
-#' @param units_var1 Units of \code{var}.
-#' @param units_var2 Units of \code{va2}.
+#' @param units Units of variables.
 #' @param units_time Units of time dimension.
 #' @param units_zdim Units of z-dimension.
-#' @param long_name_var1 Long name of \code{var}.
-#' @param long_name_var2 Long name of \code{var2}.
+#' @param long_names Long name of \code{var}.
 #' @param missing_value Missing value for all variables.
 #' @param att_title Global attribute \code{"Title"}.
 #' @param att_history Global attribute \code{"History"}.
@@ -47,8 +37,8 @@
 #' @return Nothing
 #' @export
 #'
-write_nc2 <- function(var,
-                      varnam = "varnam",
+write_nc2 <- function(obj,
+                      varnams = NA,
                       filnam_template = NA,
                       lonnam_template = "lon",
                       latnam_template = "lat",
@@ -58,12 +48,7 @@ write_nc2 <- function(var,
                       time  = NA,
                       make_zdim = FALSE,
                       make_tdim = FALSE,
-                      outfilnam = "out.nc",
-                      nvars          = 1,
-                      var2           = NA, varnam2 = NA,
-                      var3           = NA, varnam3 = NA,
-                      var4           = NA, varnam4 = NA,
-                      var5           = NA, varnam5 = NA,
+                      path = "./out.nc",
                       verbose        = FALSE,
                       lonnam = "lon",
                       latnam = "lat",
@@ -71,35 +56,41 @@ write_nc2 <- function(var,
                       timenam = "time",
                       units_lon      = "degrees_east",
                       units_lat      = "degrees_north",
-                      units_var1     = "",
-                      units_var2     = "",
+                      units          = "NA",
                       units_time     = "days since 2001-01-01",
                       units_zdim     = "",
-                      long_name_var1 = "",
-                      long_name_var2 = "",
+                      long_names     = "NA",
                       missing_value  = -9999,
                       att_title      = "",
                       att_history    = ""
                       ){
 
   ## If 'var' is a rbeni-nc element, then no additional info about dimensions must be provided
-  if (is.list(var)){
+  if (is.list(obj)){
 
-    if (is.element("vars", ls(var)) && is.element("lat", ls(var)) && is.element("lon", ls(var))){
-      obj <- var
-      var <- obj$vars[[1]]
+    if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
+
+      if (!identical(NA, varnams)){
+        var <- obj$vars[ varnams ]
+      } else {
+        rlang::warn("Using all variables in nc object.")
+        var <- obj$vars
+      }
       if (identical(lon, NA)) lon <- obj$lon
       if (identical(lat, NA)) lat <- obj$lat
-      if ("time" %in% ls(obj)){
+
+      if ("time" %in% ls(obj) && length(dim(var[[1]]))>2){
         make_tdim <- TRUE
-      } else{
+      } else {
         make_tdim <- FALSE
       }
-      if (length(ls(obj))>5){
+
+      if (length(dim(var[[1]]))>3){
         make_zdim <- TRUE
       } else {
         make_zdim <- FALSE
       }
+
       if (make_tdim){
         if (units_time=="days since 2000-01-01"){
           time <- as.integer(obj$time - lubridate::ymd("2000-01-01"))
@@ -111,20 +102,15 @@ write_nc2 <- function(var,
       }
 
       if (make_zdim){
-        varnams <- names(obj)
         zdimname <- varnams[-which(varnams=="lon" | varnams=="lat" | varnams=="time" | varnams=="vars" | varnams=="varnams")]
         z_dim <- obj[[zdimname]]
       }
-      varnam <- obj$varnams[[1]]
-      nvars <- length(obj$varnams)
-      if (length(obj$varnams)>1) var2 <- obj$vars[[2]]
-      if (length(obj$varnams)>2) var3 <- obj$vars[[3]]
-      if (length(obj$varnams)>3) var4 <- obj$vars[[4]]
-      if (length(obj$varnams)>4) var5 <- obj$vars[[5]]
-      if (length(obj$varnams)>1) varnam2 <- obj$varnams[[2]]
-      if (length(obj$varnams)>2) varnam3 <- obj$varnams[[3]]
-      if (length(obj$varnams)>3) varnam4 <- obj$varnams[[4]]
-      if (length(obj$varnams)>4) varnam5 <- obj$varnams[[5]]
+
+      if (identical(NA, varnams)){
+        varnams <- obj$varnams
+      }
+
+      nvars <- length(varnams)
 
     }
 
@@ -267,31 +253,21 @@ write_nc2 <- function(var,
   }
 
   ## Define variables. All must have the same dimensions.
-  varid1                           <- ncdf4::ncvar_def(name = varnam,  units = units_var1, dim = dimidlist, missval = missing_value, verbose = verbose)
-  if (!identical(var2, NA)) varid2 <- ncdf4::ncvar_def(name = varnam2, units = units_var2, dim = dimidlist, missval = missing_value, verbose = verbose)
-  if (!identical(var3, NA)) varid3 <- ncdf4::ncvar_def(name = varnam3, units = units_var3, dim = dimidlist, missval = missing_value, verbose = verbose)
-  if (!identical(var4, NA)) varid4 <- ncdf4::ncvar_def(name = varnam4, units = units_var4, dim = dimidlist, missval = missing_value, verbose = verbose)
-  if (!identical(var5, NA)) varid5 <- ncdf4::ncvar_def(name = varnam5, units = units_var5, dim = dimidlist, missval = missing_value, verbose = verbose)
-
-  # varid_list <- purrr::map(
-  #   as.list(varnams),
-  #   ~ncdf4::ncvar_def(name = .,  units = "asdf", dim = dimidlist, missval = missing_value, verbose = verbose))
-
-  varid_list <- list(varid1)
-  if (!identical(var2, NA)) varid_list[[2]] <- varid2
-  if (!identical(var3, NA)) varid_list[[3]] <- varid3
-  if (!identical(var4, NA)) varid_list[[4]] <- varid4
-  if (!identical(var5, NA)) varid_list[[5]] <- varid5
+  varid <- purrr::map(as.list(seq(length(varnams))),
+                      ~ncdf4::ncvar_def(name = varnams[.],
+                                        units = units[.],
+                                        dim = dimidlist,
+                                        missval = missing_value,
+                                        verbose = verbose,
+                                        longname = long_names[.])
+                      )
 
   ## Create file
-  nc <- ncdf4::nc_create(outfilnam, varid_list, verbose = verbose)
+  nc <- ncdf4::nc_create(path, varid, verbose = verbose)
 
   ## Write the data to the file
-  ncdf4::ncvar_put( nc, varid1, var, start = NA, count = NA, verbose = verbose )
-  if (!identical(var2, NA)) ncdf4::ncvar_put( nc, varid2, var2, start = NA, count = NA, verbose = verbose )
-  if (!identical(var3, NA)) ncdf4::ncvar_put( nc, varid3, var3, start = NA, count = NA, verbose = verbose )
-  if (!identical(var4, NA)) ncdf4::ncvar_put( nc, varid4, var4, start = NA, count = NA, verbose = verbose )
-  if (!identical(var5, NA)) ncdf4::ncvar_put( nc, varid5, var5, start = NA, count = NA, verbose = verbose )
+  purrr::map(as.list(seq(length(varnams))),
+             ~ncdf4::ncvar_put( nc, varid[[.]], var[[.]], start = NA, count = NA, verbose = verbose ))
 
   ## Add attributes
   ncdf4::ncatt_put( nc, varid = 0, "Title",   att_title,   prec = NA, verbose = verbose, definemode = FALSE )
