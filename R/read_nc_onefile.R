@@ -71,6 +71,12 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
       time = ncdf4::ncvar_get(nc, nc$dim$time$name)
       )
 
+    ## Conversion to ymd object requires out$time to be integer
+    ## usually it is, but in some cases it's not (e.g. when
+    ## cdo timmean is applied before).
+    ## Round down.
+    out$time <- floor(out$time)
+
     ## convert to date
     if (time_is_years){
 
@@ -114,6 +120,8 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
 
       }
     }
+
+
   }
 
   # get variables
@@ -131,5 +139,16 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
   out[["vars"]] <- vars
   out[["varnams"]] <- varnams
 
+  if (out$lat[1]>out$lat[2]){
+    ## Flip latitudes
+    out <- nc_flip_lat(out)
+  }
+
   return(out)
+}
+
+nc_flip_lat <- function(nc){
+  nc$vars[[1]] <- nc$vars[[1]][,360:1]
+  nc$lat <- rev(nc$lat)
+  return(nc)
 }

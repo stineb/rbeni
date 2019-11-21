@@ -12,14 +12,18 @@
 #' @param plot_title A character string specifying the plot title
 #' @param plot_subtitle A character string specifying the plot subtitle
 #' @param legend_title A character string specifying the legend title (annotation above the color key)
-#' @param colorscale A function that returns a set of colors. Defaults to \code{NA}.
+#' @param colorscale Either function that returns a set of colors or a vector of color names from which to interpolate.
+#' Defaults to \code{virids::viridis}.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
+#' @param combine A boolean specifying whether the map and the colorscale should be combined using cowplot.
+#' Defaults to \code{TRUE}. If \code{FALSE}, a list of elements are retruned, where elements are the ggplot2 plot object
+#' and the coloscale object returned by the call to \link{plot_discrete_cbar}.
 #'
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
 plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
-											plot_title = waiver(), plot_subtitle = waiver(), ...){
+											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, ...){
 
 	library(rworldmap)
 	library(cowplot)
@@ -62,15 +66,31 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 		## Complement info of matrix
     if (length(dim(obj))==2){
 
+      if (dim(obj)[1] == 720 && dim(obj)[2]==360){
+        grid <- "halfdeg"
+      } else if (dim(obj)[1] == 360 && dim(obj)[2]==720){
+        obj <- t(obj)
+        grid <- "halfdeg"
+      } else if (dim(obj)[1] == 360 && dim(obj)[2]==180){
+        grid <- "1x1deg"
+      } else if (dim(obj)[1] == 180 && dim(obj)[2]==360){
+        obj <- t(obj)
+        grid <- "1x1deg"
+      }
+
       ## obj is a 2D matrix (grid)
       if (grid=="halfdeg"){
         lon <- seq(from = -179.75, to = 179.75, by = 0.5)
         lat <- seq(from = -89.75, to = 89.75, by = 0.5)
+      } else if (grid=="1x1deg"){
+        lon <- seq(from = -179.75, to = 179.75, by = 1)
+        lat <- seq(from = -89.75, to = 89.75, by = 1)
       } else {
+        rlang::warn("Dimensions not identified")
         lon <- seq(dim(obj)[1])
         lat <- seq(dim(obj)[2])
       }
-      df <- grid_to_df(obj, lon, lat) %>%
+      df <- grid_to_df(obj, grid = grid, dropna = FALSE) %>%
         setNames(c("x", "y", "layer"))
 
     } else {
@@ -107,10 +127,6 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	##---------------------------------------------
 	## Bin data
 	##---------------------------------------------
-	if (identical(NA, breaks)){
-	  breaks <- scales::pretty_breaks(n = nbin)(df$layer)
-	}
-
 	toptriangle <- FALSE
 	bottomtriangle <- FALSE
 	breaks_with <- breaks
@@ -123,6 +139,11 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	  breaks <- breaks[-2]
 	}
 
+	if (identical(NA, breaks)){
+	  breaks <- scales::pretty_breaks(n = nbin)(df$layer)
+	} else {
+	  nbin <- length(breaks) - 1
+	}
 	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE))
 
 	# # remove symbols from category-strings to make them nicer in the legend
@@ -132,22 +153,18 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	##---------------------------------------------
 	## Create color scale
 	##---------------------------------------------
-	n_colors <- length(breaks) - 1
+	if (class(colorscale)=="function"){
 
-	if (identical("mycentered", colorscale)){
-	  vec_colors <- c( "royalblue4", "royalblue2", "wheat", "tomato2", "tomato4" )
-		colorscale  <- colorRampPalette( vec_colors )( n_colors )
+	  colorscale <- colorscale(nbin)
 
-	} else if (identical("mygradient", colorscale)){
+	} else if (class(colorscale)=="character") {
 
-	  vec_colors <- c( "wheat", "tomato2", "tomato4" )
-	  colorscale  <- colorRampPalette( vec_colors )( n_colors )
+	  colorscale <- colorRampPalette( colorscale )( nbin )
 
 	} else {
-
-	  colorscale <- colorscale(n_colors)
-
+	  rlang::abort("colorscale could not be set.")
 	}
+
 
 	if (toptriangle){
 	  colorscale <- c(colorscale, colorscale[length(colorscale)])
@@ -220,9 +237,13 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 		...
     )
 
-	ggcow <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.2))
+	if (combine){
+	  out <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.2))
+	} else {
+	  out <- list(ggmap = ggmap, gglegend = gglegend)
+	}
 
-  return(ggcow)
+  return(out)
 }
 
 
@@ -363,12 +384,12 @@ plot_discrete_cbar = function(
               geom = 'text',
               x = legend_position,
               # y = mean(r_breaks),
-              y = max(r_breaks) + d_breaks,
+              y = max(r_breaks) + d_breaks * 1.5,
               label = legend_title,
               # angle = angle,
               angle = 0,
-              size = font_size * 1.2,
-              fontface = 2,
+              size = font_size,
+              fontface = 1,
               hjust = 0
               )
     }

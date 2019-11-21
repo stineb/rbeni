@@ -100,10 +100,10 @@ analyse_modobs2 <- function(
       theme_classic() +
       labs(
         subtitle = bquote( italic(R)^2 == .(rsq_lab) ~~
-                                RMSE == .(rmse_lab) #~~
-                                # bias == .(bias_lab) ~~
-                                # slope == .(slope_lab) ~~
-                                # italic(N) == .(n_lab)
+                                RMSE == .(rmse_lab) ~~
+                                bias == .(bias_lab) ~~
+                                slope == .(slope_lab) ~~
+                                italic(N) == .(n_lab)
                            )
         )
 
