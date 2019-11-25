@@ -129,7 +129,17 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	##---------------------------------------------
 	toptriangle <- FALSE
 	bottomtriangle <- FALSE
+
+	if (identical(NA, breaks)){
+	  breaks <- scales::pretty_breaks(n = nbin)(df$layer)
+	  rlang::warn("Overwriting nbin after defining breaks with scales::pretty_breaks().")
+	  nbin <- length(breaks) - 1
+	} else {
+	  nbin <- length(breaks) - 1
+	}
+
 	breaks_with <- breaks
+
 	if (is.infinite(breaks[length(breaks)])){
 	  toptriangle <- TRUE
 	  breaks <- breaks[-(length(breaks)-1)]
@@ -139,11 +149,6 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	  breaks <- breaks[-2]
 	}
 
-	if (identical(NA, breaks)){
-	  breaks <- scales::pretty_breaks(n = nbin)(df$layer)
-	} else {
-	  nbin <- length(breaks) - 1
-	}
 	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE))
 
 	# # remove symbols from category-strings to make them nicer in the legend
