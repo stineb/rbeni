@@ -149,6 +149,10 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	  breaks <- breaks[-2]
 	}
 
+	## update
+	nbin <- length(breaks) - 1
+
+	## bin data
 	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE))
 
 	# # remove symbols from category-strings to make them nicer in the legend
