@@ -15,7 +15,8 @@
 		cdo mul mask.nc gridarea.nc gridarea_masked.nc
 	else
 		echo "Using land mask provided as input..."
-		cdo mul gridarea.nc $3 gridarea_masked.nc
+		cdo div $3 $3 mask.nc
+		cdo mul gridarea.nc mask.nc gridarea_masked.nc
 	fi
 
 	cdo mul $1 gridarea_masked.nc $2

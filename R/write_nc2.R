@@ -79,7 +79,7 @@ write_nc2 <- function(obj,
       if (identical(lon, NA)) lon <- obj$lon
       if (identical(lat, NA)) lat <- obj$lat
 
-      if ("time" %in% ls(obj) && length(dim(var[[1]]))>2){
+      if ("time" %in% ls(obj)){
         make_tdim <- TRUE
       } else {
         make_tdim <- FALSE
@@ -116,14 +116,16 @@ write_nc2 <- function(obj,
 
   } else {
 
-    if (identical(lon, NA)) lon <- seq(dim(var)[1])
-    if (identical(lat, NA)) lat <- seq(dim(var)[2])
+    var <- list()
+
+    if (identical(lon, NA)) lon <- seq(dim(obj)[1])
+    if (identical(lat, NA)) lat <- seq(dim(obj)[2])
 
     ## Checks
-    ## Get the dimensionality of 'var' and whether the dimension vector provided fit.
-    vardims <- dim(var)
-    if (length(lon)!=vardims[1]){rlang::abort("Aborting. Longitude vector provided does not match the first dimension of the argument 'var'.")}
-    if (length(lat)!=vardims[2]){rlang::abort("Aborting. Latitude vector provided does not match the second dimension of the argument 'var'.")}
+    ## Get the dimensionality of 'obj' and whether the dimension vector provided fit.
+    vardims <- dim(obj)
+    if (length(lon)!=vardims[1]){rlang::abort("Aborting. Longitude vector provided does not match the first dimension of the argument 'obj'.")}
+    if (length(lat)!=vardims[2]){rlang::abort("Aborting. Latitude vector provided does not match the second dimension of the argument 'obj'.")}
 
     if (length(vardims)==4){
       make_zdim==TRUE
@@ -140,9 +142,9 @@ write_nc2 <- function(obj,
           if (identical(z_dim, NA)) {rlang::abort("No z_dim vector provided")}
         }
       }
-      if (make_tdim) {
-        if (length(time)==1){
-          if (identical(time, NA)) {rlang::abort("No time; vector provided")}
+      if (!is.na(time) || make_tdim) {
+        if (make_tdim && is.na(time)){
+          rlang::abort("No time provided")
         }
       }
     }
@@ -158,58 +160,18 @@ write_nc2 <- function(obj,
         if (length(time)!=1){
           print("time vector can only have length 1")
         } else {
-          tmp <- array(NA,dim=c(dim(var),1))
-          tmp[,,1] <- var
-          var <- tmp
-          if (nvars>1){
-            tmp <- array(NA,dim=c(dim(var2),1))
-            tmp[,,1] <- var2
-            var2 <- tmp
-          }
-          if (nvars>2){
-            tmp <- array(NA,dim=c(dim(var3),1))
-            tmp[,,1] <- var3
-            var3 <- tmp
-          }
-          if (nvars>3){
-            tmp <- array(NA,dim=c(dim(var4),1))
-            tmp[,,1] <- var4
-            var4 <- tmp
-          }
-          if (nvars>4){
-            tmp <- array(NA,dim=c(dim(var5),1))
-            tmp[,,1] <- var5
-            var5 <- tmp
-          }
+          tmp <- array(NA,dim=c(dim(obj),1))
+          tmp[,,1] <- obj
+          var[[1]] <- tmp
         }
       } else if (make_zdim) {
         if (length(z_dim)!=1){
           print("z_dim vector can only have length 1")
         } else {
           print("extending output array by one dimension of length 1")
-          tmp <- array(NA,dim=c(dim(var),1))
-          tmp[,,1] <- var
-          var <- tmp
-          if (nvars>1){
-            tmp <- array(NA,dim=c(dim(var2),1))
-            tmp[,,1] <- var2
-            var2 <- tmp
-          }
-          if (nvars>2){
-            tmp <- array(NA,dim=c(dim(var3),1))
-            tmp[,,1] <- var3
-            var3 <- tmp
-          }
-          if (nvars>3){
-            tmp <- array(NA,dim=c(dim(var4),1))
-            tmp[,,1] <- var4
-            var4 <- tmp
-          }
-          if (nvars>4){
-            tmp <- array(NA,dim=c(dim(var5),1))
-            tmp[,,1] <- var5
-            var5 <- tmp
-          }
+          tmp <- array(NA,dim=c(dim(obj),1))
+          tmp[,,1] <- obj
+          var[[1]] <- tmp
         }
       }
     }
