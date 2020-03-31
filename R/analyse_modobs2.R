@@ -14,6 +14,8 @@
 #' \code{geom_points()} with color indicating density
 #' @param filnam A character string specifying the name of the file containing
 #' the plot. Defaults to \code{NA} (no file is created).
+#' @param relative A logical specifying whether the relative RMSE and bias (after
+#' division by the mean) is to be showed in the subtitle labels.
 # @param use_factor (Optional) A character string classifying points (optional)
 #'
 #' @export
@@ -26,6 +28,7 @@ analyse_modobs2 <- function(
   obs,
   type       = "points",
   filnam     = NA,
+  relative   = FALSE,
   xlim       = NULL,
   ylim       = NULL,
   use_factor = NULL,
@@ -73,6 +76,11 @@ analyse_modobs2 <- function(
   slope_val <- df_metrics %>% filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   n_val <- df_metrics %>% filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
 
+  if (relative){
+    rmse_val <- rmse_val / mean(df$obs, na.rm = TRUE)
+    bias_val <- bias_val / mean(df$obs, na.rm = TRUE)
+  }
+
   rsq_lab <- format( rsq_val, digits = 2 )
   rmse_lab <- format( rmse_val, digits = 3 )
   mae_lab <- format( mae_val, digits = 3 )
@@ -85,7 +93,8 @@ analyse_modobs2 <- function(
   if (type=="heat"){
 
     # if (!identical(filnam, NA)) dev.off()
-    source("~/LSD/R/LSD.heatscatter.R")
+    # source("~/LSD/R/LSD.heatscatter.R")
+
     gg <- heatscatter(
                   df$mod,
                   df$obs,
@@ -104,7 +113,8 @@ analyse_modobs2 <- function(
                                 bias == .(bias_lab) ~~
                                 slope == .(slope_lab) ~~
                                 italic(N) == .(n_lab)
-                           )
+                           ),
+        x = mod, y = mod
         )
 
     if (!identical(filnam, NA)) {
@@ -132,7 +142,8 @@ analyse_modobs2 <- function(
           bias == .(bias_lab) ~~~
           slope == .(slope_lab) ~~~
           italic(N) == .(n_lab)
-          )
+          ),
+        x = mod, y = mod
         )
 
     if (!identical(filnam, NA)) {
@@ -159,7 +170,8 @@ analyse_modobs2 <- function(
                                 bias == .(bias_lab) ~~
                                 slope == .(slope_lab) ~~
                                 italic(N) == .(n_lab)
-                           )
+                           ),
+        x = mod, y = mod
         )
 
     if (!identical(filnam, NA)) {
