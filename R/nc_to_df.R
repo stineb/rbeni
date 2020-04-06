@@ -75,8 +75,8 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
   if (hastime){
     if (verbose) print("Nesting data ...")
     df <- df %>%
-      dplyr::group_by(lon, lat) %>%
-      tidyr::nest()
+      # dplyr::group_by(lon, lat) %>%
+      tidyr::nest(-time)
 
   }
 

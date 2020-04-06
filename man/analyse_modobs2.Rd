@@ -10,9 +10,11 @@ analyse_modobs2(
   obs,
   type = "points",
   filnam = NA,
+  relative = FALSE,
   xlim = NULL,
   ylim = NULL,
   use_factor = NULL,
+  shortsubtitle = FALSE,
   ...
 )
 }
@@ -32,6 +34,12 @@ uses \code{ggplot2::geom_hex()}, if \code{"heat"} uses adjusted
 
 \item{filnam}{A character string specifying the name of the file containing
 the plot. Defaults to \code{NA} (no file is created).}
+
+\item{relative}{A logical specifying whether the relative RMSE and bias (after
+division by the mean) is to be showed in the subtitle labels.}
+
+\item{shortsubtitle}{A boolean specifying whether to display only R2, and in
+the subtitle metrics.}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled

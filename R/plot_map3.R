@@ -153,7 +153,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	nbin <- length(breaks) - 1
 
 	## bin data
-	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE))
+	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
 
 	# # remove symbols from category-strings to make them nicer in the legend
 	# df$layercut <- gsub("\\(|\\]", "", df$layercut)
@@ -164,7 +164,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	##---------------------------------------------
 	if (class(colorscale)=="function"){
 
-	  colorscale <- colorscale(nbin)
+	  colorscale <- colorscale(nbin, direction = -1)
 
 	} else if (class(colorscale)=="character") {
 
@@ -314,9 +314,11 @@ plot_discrete_cbar = function(
     xmin = 1 - width/2
     xmax = 1 + width/2
 
-    cbar_plot = ggplot(cbar_df, aes(xmin=xmin, xmax = xmax, ymin = y, ymax = yend, fill = factor(color, levels = 1:length(colors)))) +
-        geom_rect(show.legend = FALSE,
-                  color=border_color)
+    cbar_plot = ggplot(
+      cbar_df,
+      aes(xmin=xmin, xmax = xmax, ymin = y, ymax = yend, fill = factor(color, levels = 1:length(colors)))
+      ) +
+      geom_rect(show.legend = FALSE, color=border_color)
 
     ## Add arrows
     if (any(inf_breaks == 1)) { # Add < arrow for -Inf

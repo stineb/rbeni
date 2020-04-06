@@ -39,10 +39,13 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
       lonname <- "longitude"
     } else if ("Longitude" %in% dimnames){
       lonname <- "Longitude"
+    } else if ("LONGITUDE" %in% dimnames){
+      lonname <- "LONGITUDE"
     }
   } else {
     lonname <- "lon"
   }
+
   if (!("lat" %in% dimnames)){
     if ("LAT" %in% dimnames){
       latname <- "LAT"
@@ -50,13 +53,25 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
       latname <- "latitude"
     } else if ("Latitude" %in% dimnames){
       latname <- "Latitude"
+    } else if ("LATITUDE" %in% dimnames){
+      latname <- "LATITUDE"
     }
   } else {
     latname <- "lat"
   }
 
+  if (!("time" %in% dimnames)){
+    if ("TIME" %in% dimnames){
+      timename <- "TIME"
+    } else if ("Time" %in% dimnames){
+      timename <- "Time"
+    }
+  } else {
+    timename <- "time"
+  }
 
-  if (is.null(nc$dim$time)){
+
+  if (!any(c("TIME", "time", "Time") %in% names(nc$dim))){
     ## no time dimension
     out <- list(
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
@@ -68,7 +83,7 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
     out <- list(
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
       lat = ncdf4::ncvar_get(nc, nc$dim[[latname]]$name),
-      time = ncdf4::ncvar_get(nc, nc$dim$time$name)
+      time = ncdf4::ncvar_get(nc, nc$dim[[timename]]$name)
       )
 
     ## Conversion to ymd object requires out$time to be integer
@@ -90,29 +105,33 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
 
     } else {
 
-      if (nc$dim$time$units=="days since 2001-1-1 0:0:0"){
+      if (nc$dim[[timename]]$units=="days since 2001-1-1 0:0:0"){
 
         out$time <- conv_noleap_to_ymd(out$time, origin = lubridate::ymd("2001-01-01"))
 
-      } else if (nc$dim$time$units=="days since 2000-01-01"){
+      } else if (nc$dim[[timename]]$units=="days since 2000-01-01"){
 
         time_origin <- lubridate::ymd("2000-01-01")
         out$time <- lubridate::days(out$time) + time_origin
 
-      } else if (nc$dim$time$units=="days since 2001-01-01"){
+      } else if (nc$dim[[timename]]$units=="days since 2001-01-01"){
 
         time_origin <- lubridate::ymd("2001-01-01")
         out$time <- lubridate::days(out$time) + time_origin
 
-      } else if (nc$dim$time$units=="days since 1900-1-1"){
+      } else if (nc$dim[[timename]]$units=="days since 1900-1-1"){
 
         time_origin <- lubridate::ymd("1900-01-01")
         out$time <- lubridate::days(out$time) + time_origin
 
-      } else if (nc$dim$time$units=="days since 1970-01-01 00:00:00"){
+      } else if (nc$dim[[timename]]$units=="days since 1970-01-01 00:00:00"){
 
         time_origin <- lubridate::ymd("1970-01-01")
         out$time <- lubridate::days(out$time) + time_origin
+
+      } else if (nc$dim[[timename]]$units=="years"){
+
+        out$time <- out$time
 
       } else {
 
@@ -139,9 +158,11 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
   out[["vars"]] <- vars
   out[["varnams"]] <- varnams
 
-  if (out$lat[1]>out$lat[2]){
-    ## Flip latitudes
-    out <- nc_flip_lat(out)
+  if (length(out$lat)>1){
+    if (out$lat[1]>out$lat[2]){
+      ## Flip latitudes
+      out <- nc_flip_lat(out)
+    }
   }
 
   return(out)

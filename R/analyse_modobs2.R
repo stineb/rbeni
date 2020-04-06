@@ -16,6 +16,8 @@
 #' the plot. Defaults to \code{NA} (no file is created).
 #' @param relative A logical specifying whether the relative RMSE and bias (after
 #' division by the mean) is to be showed in the subtitle labels.
+#' @param shortsubtitle A boolean specifying whether to display only R2, and in
+#' the subtitle metrics.
 # @param use_factor (Optional) A character string classifying points (optional)
 #'
 #' @export
@@ -32,6 +34,7 @@ analyse_modobs2 <- function(
   xlim       = NULL,
   ylim       = NULL,
   use_factor = NULL,
+  shortsubtitle = FALSE,
   ...
   ){
 
@@ -90,6 +93,17 @@ analyse_modobs2 <- function(
 
   results <- tibble( rsq = rsq_val, rmse = rmse_val, mae = mae_val, bias = bias_val, slope = slope_val, n = n_val )
 
+  if (shortsubtitle){
+    subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
+                          RMSE == .(rmse_lab) )
+  } else {
+    subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
+                          RMSE == .(rmse_lab) ~~
+                          bias == .(bias_lab) ~~
+                          slope == .(slope_lab) ~~
+                          italic(N) == .(n_lab) )
+  }
+
   if (type=="heat"){
 
     # if (!identical(filnam, NA)) dev.off()
@@ -108,13 +122,7 @@ analyse_modobs2 <- function(
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       theme_classic() +
       labs(
-        subtitle = bquote( italic(R)^2 == .(rsq_lab) ~~
-                                RMSE == .(rmse_lab) ~~
-                                bias == .(bias_lab) ~~
-                                slope == .(slope_lab) ~~
-                                italic(N) == .(n_lab)
-                           ),
-        x = mod, y = mod
+        x = mod, y = mod, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
@@ -136,14 +144,7 @@ analyse_modobs2 <- function(
       # ylim(0,NA) +
       theme_classic() +
       labs(
-        subtitle = bquote(
-          italic(R)^2 == .(rsq_lab) ~~~
-          RMSE == .(rmse_lab) ~~~
-          bias == .(bias_lab) ~~~
-          slope == .(slope_lab) ~~~
-          italic(N) == .(n_lab)
-          ),
-        x = mod, y = mod
+        x = mod, y = mod, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
@@ -163,15 +164,7 @@ analyse_modobs2 <- function(
       # ylim(0,NA) +
       theme_classic() +
       labs(
-        # subtitle = expression( paste( italic(R)^2, "\n",
-        #   "beni")),
-        subtitle = bquote( italic(R)^2 == .(rsq_lab) ~~
-                                RMSE == .(rmse_lab) ~~
-                                bias == .(bias_lab) ~~
-                                slope == .(slope_lab) ~~
-                                italic(N) == .(n_lab)
-                           ),
-        x = mod, y = mod
+        x = mod, y = mod, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
