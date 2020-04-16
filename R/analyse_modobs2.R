@@ -64,20 +64,20 @@ analyse_modobs2 <- function(
     # dplyr::bind_rows( tibble( .metric = "nse",      .estimator = "standard", .estimate = hydroGOF::NSE( obs, mod, na.rm=TRUE ) ) ) %>%
     dplyr::bind_rows( tibble( .metric = "mean_obs", .estimator = "standard", .estimate = summarise(df, mean=mean(obs, na.rm=TRUE)) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "prmse",    .estimator = "standard",
-                       .estimate = filter(., .metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() /
-                         filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
+                       .estimate = dplyr::filter(., .metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() /
+                         dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "pmae",    .estimator = "standard",
-                       .estimate = filter(., .metric=="mae") %>% dplyr::select(.estimate) %>% unlist() /
-                         filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
+                       .estimate = dplyr::filter(., .metric=="mae") %>% dplyr::select(.estimate) %>% unlist() /
+                         dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) )
 
-  rsq_val <- df_metrics %>% filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
-  rmse_val <- df_metrics %>% filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
-  mae_val <- df_metrics %>% filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
-  bias_val <- df_metrics %>% filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
-  slope_val <- df_metrics %>% filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
-  n_val <- df_metrics %>% filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  rsq_val <- df_metrics %>% dplyr::filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  rmse_val <- df_metrics %>% dplyr::filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  mae_val <- df_metrics %>% dplyr::filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  bias_val <- df_metrics %>% dplyr::filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  slope_val <- df_metrics %>% dplyr::filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  n_val <- df_metrics %>% dplyr::filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
 
   if (relative){
     rmse_val <- rmse_val / mean(df$obs, na.rm = TRUE)
