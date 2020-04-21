@@ -27,6 +27,7 @@ cutna_headtail_df <- function( df, col, extend = FALSE ){
   ## remove NAs from head
   vec <- unname(unlist(df[col]))
   if (is.na(vec[1])){
+    cuthead <- 1
     idx <- 0
     while ( idx < length(vec) ){
       idx <- idx + 1
@@ -46,6 +47,7 @@ cutna_headtail_df <- function( df, col, extend = FALSE ){
 
   ## remove NAs from tail
   if (is.na(vec[length(vec)])){
+    cuttail <- 1
     idx <- 0
     while ( idx < length(vec) ){
       idx <- idx + 1
