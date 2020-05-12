@@ -10,13 +10,8 @@
 #' print(myapprox(vec))
 myapprox <- function(vec){
 
-  vec <- approx(vec, xout = 1:length(vec))$y
-
-  # vec <- ifelse(
-  #   sum(!is.na(vec))>1,
-  #   approx(vec, xout = 1:length(vec))$y,
-  #   NA
-  # )
+  x <- 1:length(vec)
+  vec <- approx(x, vec, xout = x)$y
 
   return(vec)
 }

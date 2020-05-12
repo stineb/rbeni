@@ -122,7 +122,7 @@ analyse_modobs2 <- function(
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       theme_classic() +
       labs(
-        x = mod, y = mod, subtitle = subtitle
+        x = mod, y = obs, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
@@ -144,7 +144,7 @@ analyse_modobs2 <- function(
       # ylim(0,NA) +
       theme_classic() +
       labs(
-        x = mod, y = mod, subtitle = subtitle
+        x = mod, y = obs, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
@@ -164,7 +164,7 @@ analyse_modobs2 <- function(
       # ylim(0,NA) +
       theme_classic() +
       labs(
-        x = mod, y = mod, subtitle = subtitle
+        x = mod, y = obs, subtitle = subtitle
         )
 
     if (!identical(filnam, NA)) {
