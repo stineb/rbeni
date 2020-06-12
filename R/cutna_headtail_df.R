@@ -72,7 +72,9 @@ cutna_headtail_df <- function( df, col, extend = FALSE ){
     vec_replace[idxs_tail] <- vec_replace[min(idxs_tail)-1]
     df[[col]] <- vec_replace
   } else {
-    df <- dplyr::slice(df, -idxs)
+    df <- df %>%
+      ungroup() %>%
+      dplyr::slice(-idxs)
   }
 
   #return(idxs)
