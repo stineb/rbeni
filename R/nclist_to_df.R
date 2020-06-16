@@ -18,9 +18,12 @@
 #'
 nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "time", ncores = 1){
 
+  require(dplyr)
+  require(magrittr)
+
   ## open one file to get longitude information
   nlon <- ncmeta::nc_dim(nclist[1], lonnam) %>%
-    pull(length)
+    dplyr::pull(length)
 
   ## get base date (to interpret time units in 'days since X')
   basedate <- ncmeta::nc_atts(nclist[1], timenam) %>%
@@ -32,11 +35,11 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "
     lubridate::ymd()
 
   ## collect time series per longitude slice and create separate files per longitude slice.
-  ## This step can be parallelized (dependecies: tidync, dplyr, tidyr, purrr)
+  ## This step can be parallelized (dependecies: tidync, dplyr, tidyr, purrr, magrittr)
   if (ncores > 1){
 
     cl <- multidplyr::new_cluster(ncores) %>%
-      multidplyr::cluster_library(c("dplyr", "purrr", "tidyr", "tidync", "dplyr")) %>%
+      multidplyr::cluster_library(c("dplyr", "purrr", "tidyr", "tidync", "dplyr", "magrittr")) %>%
       multidplyr::cluster_assign(nclist = nclist) %>%
       multidplyr::cluster_assign(outdir = outdir) %>%
       multidplyr::cluster_assign(fileprefix = fileprefix) %>%
@@ -45,7 +48,7 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "
       multidplyr::cluster_assign(basedate = basedate) %>%
       multidplyr::cluster_assign(nclist_to_df_byidx = nclist_to_df_byidx)
 
-    ## distribute to to cores, making sure all data from a specific site is sent to the same core
+    ## distribute to cores, making sure all data from a specific site is sent to the same core
     df_out <- tibble(ilon = seq(nlon)) %>%
       multidplyr::partition(cl) %>%
       dplyr::mutate(out = purrr::map_int( ilon,
