@@ -4,7 +4,12 @@
 \alias{read_nc_onefile}
 \title{Reads a NetCDF file}
 \usage{
-read_nc_onefile(filn, date_origin = NA, time_is_years = FALSE)
+read_nc_onefile(
+  filn,
+  date_origin = NA,
+  time_is_years = FALSE,
+  ignore_time = FALSE
+)
 }
 \arguments{
 \item{filn}{A character string specifying the full path of the NetCDF
@@ -15,6 +20,10 @@ specifying the origin, day 0, of the time values provided in the NetCDF file.}
 
 \item{time_is_years}{A logical specifying whether the values provided by dimension
 \code{'time'} is years. Defaults to \code{FALSE}.}
+
+\item{ignore_time}{A logical specifying whether file has a time dimension Use this to
+ignore if it has a time dimension of length 1 by \code{has_time=TRUE}. Defaults to
+\code{FALSE}.}
 }
 \value{
 A list, containing \code{"lon"} (vector of longitudes of

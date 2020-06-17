@@ -15,6 +15,8 @@ analyse_modobs2(
   ylim = NULL,
   use_factor = NULL,
   shortsubtitle = FALSE,
+  plot_subtitle = TRUE,
+  plot_linmod = TRUE,
   ...
 )
 }
@@ -40,6 +42,12 @@ division by the mean) is to be showed in the subtitle labels.}
 
 \item{shortsubtitle}{A boolean specifying whether to display only R2, and in
 the subtitle metrics.}
+
+\item{plot_subtitle}{A boolean specifying whether to display any metrics. Defaults
+to \code{TRUE}.}
+
+\item{plot_linmod}{A boolean specifying whether to display the fitted linear
+regression as a red line. Defaults to \code{TRUE}.}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled

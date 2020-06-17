@@ -8,6 +8,9 @@
 #' specifying the origin, day 0, of the time values provided in the NetCDF file.
 #' @param time_is_years A logical specifying whether the values provided by dimension
 #' \code{'time'} is years. Defaults to \code{FALSE}.
+#' @param ignore_time A logical specifying whether file has a time dimension Use this to
+#' ignore if it has a time dimension of length 1 by \code{has_time=TRUE}. Defaults to
+#' \code{FALSE}.
 #'
 #' @return A list, containing \code{"lon"} (vector of longitudes of
 #' gridcell mid-points), \code{"lat"} (vector of latitudes of gridcell
@@ -17,7 +20,7 @@
 #' variable.
 #' @export
 #'
-read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
+read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignore_time = FALSE){
 
   require(dplyr)
 
@@ -71,7 +74,7 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
   }
 
 
-  if (!any(c("TIME", "time", "Time") %in% names(nc$dim))){
+  if (!any(c("TIME", "time", "Time") %in% names(nc$dim)) || ignore_time){
     ## no time dimension
     out <- list(
       lon = ncdf4::ncvar_get(nc, nc$dim[[lonname]]$name),
@@ -169,7 +172,8 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE){
 }
 
 nc_flip_lat <- function(nc){
-  nc$vars[[1]] <- nc$vars[[1]][,360:1]
+  nlat <- length(nc$lat)
+  nc$vars[[1]] <- nc$vars[[1]][,nlat:1]
   nc$lat <- rev(nc$lat)
   return(nc)
 }

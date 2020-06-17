@@ -30,6 +30,10 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
     # a character is provided by 'obj' -> read file into rbeni-nc object
     nc <- read_nc_onefile(obj)
 
+    if ("time" %in% ls(nc)){
+      hastime <- TRUE
+    }
+
   } else if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
 
     # an rbeni-nc object is provided by 'obj'
@@ -75,8 +79,8 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
   if (hastime){
     if (verbose) print("Nesting data ...")
     df <- df %>%
-      # dplyr::group_by(lon, lat) %>%
-      tidyr::nest(-time)
+      dplyr::group_by(lon, lat) %>%
+      tidyr::nest()
 
   }
 
