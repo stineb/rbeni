@@ -18,7 +18,10 @@
 #' division by the mean) is to be showed in the subtitle labels.
 #' @param shortsubtitle A boolean specifying whether to display only R2, and in
 #' the subtitle metrics.
-# @param use_factor (Optional) A character string classifying points (optional)
+#' @param plot_subtitle A boolean specifying whether to display any metrics. Defaults
+#' to \code{TRUE}.
+#' @param plot_linmod A boolean specifying whether to display the fitted linear
+#' regression as a red line. Defaults to \code{TRUE}.
 #'
 #' @export
 #'
@@ -35,6 +38,8 @@ analyse_modobs2 <- function(
   ylim       = NULL,
   use_factor = NULL,
   shortsubtitle = FALSE,
+  plot_subtitle = TRUE,
+  plot_linmod = TRUE,
   ...
   ){
 
@@ -118,12 +123,12 @@ analyse_modobs2 <- function(
                   ggplot=TRUE )
 
     gg <- gg +
-      geom_smooth(method='lm', color="red", size=0.5, se=FALSE) +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       theme_classic() +
-      labs(
-        x = mod, y = obs, subtitle = subtitle
-        )
+      labs(x = mod, y = obs)
+
+    if (plot_linmod) gg <- + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
+    if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -137,15 +142,15 @@ analyse_modobs2 <- function(
       geom_hex() +
       scale_fill_gradientn(
         colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5)) +
-      geom_smooth(method='lm', color="red", size=0.5) +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
       # xlim(0,NA) +
       # ylim(0,NA) +
       theme_classic() +
-      labs(
-        x = mod, y = obs, subtitle = subtitle
-        )
+      labs(x = mod, y = obs)
+
+    if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
+    if (plot_linmod) gg <- + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -157,15 +162,15 @@ analyse_modobs2 <- function(
     gg <- df %>%
       ggplot(aes(x=mod, y=obs)) +
       geom_point() +
-      geom_smooth(method='lm', color="red", size=0.5) +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
       # xlim(0,NA) +
       # ylim(0,NA) +
       theme_classic() +
-      labs(
-        x = mod, y = obs, subtitle = subtitle
-        )
+      labs(x = mod, y = obs)
+
+    if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
+    if (plot_linmod) gg <- + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
