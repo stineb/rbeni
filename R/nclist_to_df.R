@@ -93,19 +93,28 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     return(df)
   }
 
-  ## get data from all files at given longitude index idx
-  df <- purrr::map_dfr(
+  ## check whether output has been created already (otherwise do nothing)
+  if (!dir.exists(outdir)){system(paste0("mkdir -p ", outdir))}
+  outpath <- paste0(outdir, fileprefix, "_ilon_", idx, ".RData")
+
+  if (!file.exists(outpath)){
+
+    ## get data from all files at given longitude index idx
+    df <- purrr::map_dfr(
       as.list(nclist),
       ~nclist_to_df_byfil(., idx, basedate = basedate, varnam = varnam, lonnam = lonnam, timenam = timenam, timedimnam = timedimnam)
       ) %>%
-    dplyr::group_by(lon, lat) %>%
-    tidyr::nest() %>%
-    dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
+      dplyr::group_by(lon, lat) %>%
+      tidyr::nest() %>%
+      dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
 
-  if (!dir.exists(outdir)){system(paste0("mkdir -p ", outdir))}
-  outpath <- paste0(outdir, fileprefix, "_ilon_", idx, ".RData")
-  print(paste("Writing file", outpath, "..."))
-  save(df, file = outpath)
+    print(paste("Writing file", outpath, "..."))
+    save(df, file = outpath)
+
+  }
+
+
+
   return(idx)
 }
 
