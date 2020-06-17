@@ -172,8 +172,20 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
 }
 
 nc_flip_lat <- function(nc){
+
   nlat <- length(nc$lat)
-  nc$vars[[1]] <- nc$vars[[1]][,nlat:1]
+
+  nc_flip_lat_byvar <- function(var, nlat){
+    if (length(dim(var))==2){
+      var <- var[,nlat:1]
+    }
+    return(var)
+  }
+
+  purrr::map(nc$vars, ~nc_flip_lat_byvar(., nlat = nlat))
+
+  # nc$vars[[1]] <- nc$vars[[1]][,nlat:1]
+
   nc$lat <- rev(nc$lat)
   return(nc)
 }

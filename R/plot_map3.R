@@ -9,6 +9,10 @@
 #' to \code{NA} (the 99\% quantile of values is used).
 #' @param breaks A numeric vector specifying the breaks for the color scale. Defaults to \code{NA}, i.e. breaks
 #' are determined automatically based on \code{nbin} and \code{maxval}.
+#' @param lonmin Left edge (longitude, in degrees), defaults to -180.
+#' @param lonmax Right edge (longitude, in degrees), defaults to 180.
+#' @param latmin Lower edge (latitude, in degrees), defaults to -90.
+#' @param latmax Upper edge (latitude, in degrees), defaults to 90.
 #' @param plot_title A character string specifying the plot title
 #' @param plot_subtitle A character string specifying the plot subtitle
 #' @param legend_title A character string specifying the legend title (annotation above the color key)
@@ -22,14 +26,15 @@
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
+plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
+                      nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, ...){
 
 	library(rworldmap)
 	library(cowplot)
   library(ggplot2)
   library(raster)
-	data(coastsCoarse)
+	data(coastsCoarse) # from rworldmap package
 
 	sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
 
@@ -206,10 +211,14 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
 	  )
 
 	# define labels
-	lat.labels <- seq(-90, 90, 30)
-	lat.short  <- seq(-90, 90, 10)
-	lon.labels <- seq(-180, 180, 60)
-	lon.short  <- seq(-180, 180, 10)
+	dloncoarse <- (lonmax - lonmin)/6
+	dlonfine   <- (lonmax - lonmin)/18
+	dlatcoarse <- (latmax - latmin)/6
+	dlatfine   <- (latmax - latmin)/18
+	lat.labels <- seq(latmin, latmax, dlatcoarse)
+	lat.short  <- seq(latmin, latmax, dlatfine)
+	lon.labels <- seq(lonmin, lonmax, dloncoarse)
+	lon.short  <- seq(lonmin, lonmax, dlonfine)
 
 	# a <- sapply( lat.labels, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
 	# b <- sapply( lon.labels, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)})
@@ -237,7 +246,10 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, nbin = 10, legend_title = w
     scale_x_continuous(expand = c(0,0), limits = c(-180,180), breaks = lon.labels, labels = b) +
     scale_y_continuous(expand = c(0,0), limits = c(-60,85),   breaks = lat.labels, labels = a) +
 
-	  labs( x = "", y = "", title = plot_title, subtitle = plot_subtitle)
+	  labs( x = "", y = "", title = plot_title, subtitle = plot_subtitle) +
+
+	  xlim(lonmin, lonmax) +
+	  ylim(latmin, latmax)
 
 
 	gglegend <- plot_discrete_cbar(
