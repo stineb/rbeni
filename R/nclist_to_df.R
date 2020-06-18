@@ -9,17 +9,19 @@
 #' @param fileprefix A character string specifying the file name prefix.
 #' @param varnam The variable name(s) for which data is to be read from NetCDF files.
 #' @param lonnam The dimension name of longitude.
+#' @param latnam The dimension name of latitude
 #' @param timenam The name of dimension variable used for time. Defaults to \code{"time"}.
 #' @param timedimnam The name of the dimension (axis) used for time. Defaults to \code{"time"}.
 #' @param ncores Number of cores for parallel execution (distributing extraction of
 #' longitude slices).
 #' @param single_basedate A logical specifying whether all files in the file list have the same
 #' base date (e.g., time units given in 'days since <basedate>').
+#' @param fgetdate A function to derive the date used for the time dimension based on the file name.
 #'
 #' @return Nothing. Writes data to files.
 #' @export
 #'
-nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "time", timedimnam = "time", ncores = 1, single_basedate = FALSE){
+nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam = "lon", latnam = "lat", timenam = "time", timedimnam = "time", ncores = 1, single_basedate = FALSE, fgetdate = NA){
 
   require(dplyr)
   require(magrittr)
@@ -28,7 +30,7 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "
   nlon <- ncmeta::nc_dim(nclist[1], lonnam) %>%
     dplyr::pull(length)
 
-  if (single_basedate){
+  if (single_basedate && is.na(fgetdate)){
     ## get base date (to interpret time units in 'days since X')
     basedate <- ncmeta::nc_atts(nclist[1], timenam) %>%
       tidyr::unnest(cols = c(value)) %>%
@@ -52,28 +54,30 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam, timenam = "
       multidplyr::cluster_assign(fileprefix = fileprefix) %>%
       multidplyr::cluster_assign(varnam = varnam) %>%
       multidplyr::cluster_assign(lonnam = lonnam) %>%
+      multidplyr::cluster_assign(latnam = latnam) %>%
       multidplyr::cluster_assign(basedate = basedate) %>%
       multidplyr::cluster_assign(timenam = timenam) %>%
       multidplyr::cluster_assign(timedimnam = timedimnam) %>%
+      multidplyr::cluster_assign(fgetdate = fgetdate) %>%
       multidplyr::cluster_assign(nclist_to_df_byidx = nclist_to_df_byidx)
 
     ## distribute to cores, making sure all data from a specific site is sent to the same core
     df_out <- tibble(ilon = seq(nlon)) %>%
       multidplyr::partition(cl) %>%
       dplyr::mutate(out = purrr::map_int( ilon,
-                                      ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, basedate, timenam, timedimnam)))
+                                      ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate)))
 
   } else {
-    purrr::map(as.list(seq(nlon)), ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, basedate, timenam, timedimnam))
+    purrr::map(as.list(seq(nlon)[1]), ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate))
   }
 
 }
 
-nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, basedate, timenam, timedimnam){
+nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate){
 
-  nclist_to_df_byfil <- function(filnam, idx, basedate, varnam, lonnam, timenam, timedimnam){
+  nclist_to_df_byfil <- function(filnam, idx, basedate, varnam, lonnam, latnam, timenam, timedimnam, fgetdate){
 
-    if (is.na(basedate)){
+    if (is.na(basedate) && is.na(fgetdate)){
       ## get base date (to interpret time units in 'days since X')
       basedate <- ncmeta::nc_atts(filnam, timenam) %>%
         tidyr::unnest(cols = c(value)) %>%
@@ -89,9 +93,19 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
       tidync::hyper_tibble(select_var(varnam))
 
     if (nrow(df)>0){
-      df <- df %>%
-        dplyr::rename(time = !!timedimnam) %>%
-        dplyr::mutate(time = basedate + lubridate::days(time) - lubridate::days(1))
+
+      if (!is.na(fgetdate)){
+        df <- df %>%
+          dplyr::rename(lon = !!lonnam, lat = !!latnam) %>%
+          dplyr::mutate(time = fgetdate(filnam))
+
+      } else {
+        df <- df %>%
+          dplyr::rename(time = !!timedimnam, lon = !!lonnam, lat = !!latnam) %>%
+          dplyr::mutate(time = basedate + lubridate::days(time) - lubridate::days(1))
+
+      }
+
     }
 
     return(df)
@@ -108,7 +122,7 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     ## get data from all files at given longitude index idx
     df <- purrr::map(
       as.list(nclist),
-      ~nclist_to_df_byfil(., idx, basedate = basedate, varnam = varnam, lonnam = lonnam, timenam = timenam, timedimnam = timedimnam)
+      ~nclist_to_df_byfil(., idx, basedate = basedate, varnam = varnam, lonnam = lonnam, latnam = latnam, timenam = timenam, timedimnam = timedimnam, fgetdate)
       )
 
     ## chech if any element has zero rows and drop that element
