@@ -86,11 +86,11 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
 
     df <- tidync::tidync(filnam) %>%
       tidync::hyper_filter(lon = index == idx) %>%
-      tidync::hyper_tibble(select_var(varnam)) %>%
-      dplyr::rename(time = !!timedimnam)
-    
+      tidync::hyper_tibble(select_var(varnam))
+
     if (nrow(df)>0){
-      df <- df %>% 
+      df <- df %>%
+        dplyr::rename(time = !!timedimnam) %>%
         dplyr::mutate(time = basedate + lubridate::days(time) - lubridate::days(1))
     }
 
@@ -103,8 +103,8 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
 
   if (!file.exists(outpath)){
 
-    print(paste("Getting file", outpath, "..."))    
-    
+    print(paste("Getting file", outpath, "..."))
+
     ## get data from all files at given longitude index idx
     df <- purrr::map_dfr(
       as.list(nclist),
