@@ -111,6 +111,8 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     print(paste("Writing file", outpath, "..."))
     save(df, file = outpath)
 
+  } else {
+    print(paste("File exists already:", outpath))
   }
 
 
