@@ -68,7 +68,7 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, lonnam = "lon", lat
                                       ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate)))
 
   } else {
-    purrr::map(as.list(seq(nlon)[1]), ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate))
+    purrr::map(as.list(seq(nlon)), ~nclist_to_df_byidx(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate))
   }
 
 }
@@ -128,15 +128,17 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     ## chech if any element has zero rows and drop that element
     drop_zerorows <- function(y) { return(y[!sapply(y, function(x) nrow(x)==0 )]) }
     df <- df %>%
-      drop_zerorows() %>%
-
-      ## nest by gridcell and arrange time
-      bind_rows() %>%
-      dplyr::group_by(lon, lat) %>%
-      tidyr::nest() %>%
-      dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
-
-    save(df, file = outpath)
+      drop_zerorows()
+    
+    if (length(df)>0){
+      df <- df %>% 
+        dplyr::bind_rows() %>% 
+        dplyr::group_by(lon, lat) %>% 
+        tidyr::nest() %>%
+        dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
+      
+      save(df, file = outpath)
+    }
 
   } else {
     print(paste("File exists already:", outpath))
