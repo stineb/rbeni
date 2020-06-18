@@ -106,13 +106,13 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     print(paste("Getting file", outpath, "..."))
 
     ## get data from all files at given longitude index idx
-    df <- purrr::map_dfr(
+    df <- purrr::map(
       as.list(nclist),
       ~nclist_to_df_byfil(., idx, basedate = basedate, varnam = varnam, lonnam = lonnam, timenam = timenam, timedimnam = timedimnam)
-      ) %>%
-      dplyr::group_by(lon, lat) %>%
-      tidyr::nest() %>%
-      dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
+      )
+#       dplyr::group_by(lon, lat) %>%
+#       tidyr::nest() %>%
+#       dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
 
     save(df, file = outpath)
 
