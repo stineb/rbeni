@@ -103,6 +103,8 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
 
   if (!file.exists(outpath)){
 
+    print(paste("Getting file", outpath, "..."))    
+    
     ## get data from all files at given longitude index idx
     df <- purrr::map_dfr(
       as.list(nclist),
@@ -112,7 +114,6 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
       tidyr::nest() %>%
       dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
 
-    print(paste("Writing file", outpath, "..."))
     save(df, file = outpath)
 
   } else {
