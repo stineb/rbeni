@@ -87,8 +87,12 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     df <- tidync::tidync(filnam) %>%
       tidync::hyper_filter(lon = index == idx) %>%
       tidync::hyper_tibble(select_var(varnam)) %>%
-      dplyr::rename(time = !!timedimnam) %>%
-      dplyr::mutate(time = basedate + lubridate::days(time - 1))
+      dplyr::rename(time = !!timedimnam)
+    
+    if (nrow(df)>0){
+      df <- df %>% 
+        dplyr::mutate(time = basedate + lubridate::days(time) - lubridate::days(1))
+    }
 
     return(df)
   }
@@ -112,8 +116,6 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     save(df, file = outpath)
 
   }
-
-
 
   return(idx)
 }
