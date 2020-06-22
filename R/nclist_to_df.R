@@ -138,6 +138,7 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
         dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
 
       save(df, file = outpath)
+      rm("df")
     }
 
   } else {
