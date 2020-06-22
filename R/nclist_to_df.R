@@ -129,14 +129,14 @@ nclist_to_df_byidx <- function(nclist, idx, outdir, fileprefix, varnam, lonnam, 
     drop_zerorows <- function(y) { return(y[!sapply(y, function(x) nrow(x)==0 )]) }
     df <- df %>%
       drop_zerorows()
-    
+
     if (length(df)>0){
-      df <- df %>% 
-        dplyr::bind_rows() %>% 
-        dplyr::group_by(lon, lat) %>% 
+      df <- df %>%
+        dplyr::bind_rows() %>%
+        dplyr::group_by(lon, lat) %>%
         tidyr::nest() %>%
         dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
-      
+
       save(df, file = outpath)
     }
 
