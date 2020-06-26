@@ -16,7 +16,8 @@
 #' @param timenam The name of dimension variable used for time. Defaults to \code{"time"}.
 #' @param timedimnam The name of the dimension (axis) used for time. Defaults to \code{"time"}.
 #' @param ncores Number of cores for parallel execution (distributing extraction of
-#' longitude slices).
+#' longitude slices). When set to \code{"all"}, the number of cores for parallelisation is
+#' determined by \code{parallel::detectCores()}. Defaults to \code{1} (no parallelisation).
 #' @param single_basedate A logical specifying whether all files in the file list have the same
 #' base date (e.g., time units given in 'days since <basedate>').
 #' @param fgetdate A function to derive the date used for the time dimension based on the file name.
@@ -50,6 +51,10 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA, lonnam =
       lubridate::ymd()
   } else {
     basedate <- NA
+  }
+
+  if (ncores=="all"){
+    ncores <- parallel::detectCores()
   }
 
   ## collect time series per longitude slice and create separate files per longitude slice.
