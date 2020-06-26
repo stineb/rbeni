@@ -67,7 +67,7 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
 
   # add data variable as column
   df <- df %>%
-    dplyr::bind_cols(tibble(myvar = as.vector(nc$vars[[1]])))
+    dplyr::bind_cols(tibble(myvar = as.vector(nc$vars[[varnam]])))
 
   if (dropna){
     if (verbose) print("Dropping NAs ...")
