@@ -1,7 +1,7 @@
 #' Extracts full time series
 #'
 #' Extracts full time series from a list of NetCDF files, provided for time
-#' steps (can be one time step or multiple time steps) separately and writes 
+#' steps (can be one time step or multiple time steps) separately and writes
 #' .RData files for each longitude index.
 #'
 #' @param nclist A vector of character strings specifying the complete paths to files.
@@ -9,7 +9,7 @@
 #' using the \code{save} statement.
 #' @param fileprefix A character string specifying the file name prefix.
 #' @param varnam The variable name(s) for which data is to be read from NetCDF files.
-#' @param ilon An integer specifying an individual longitude index. If provided, it overrides that 
+#' @param ilon An integer specifying an individual longitude index. If provided, it overrides that
 #' the function extracts data for all longitude indices.
 #' @param lonnam The dimension name of longitude.
 #' @param latnam The dimension name of latitude
@@ -37,7 +37,7 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA, lonnam =
       dplyr::pull(length)
 
     ilon <- seq(nlon)
-  }  
+  }
 
   if (single_basedate && is.na(fgetdate)){
     ## get base date (to interpret time units in 'days since X')
@@ -111,7 +111,7 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
       } else {
         df <- df %>%
           dplyr::rename(time = !!timedimnam, lon = !!lonnam, lat = !!latnam) %>%
-          dplyr::mutate(time = basedate + lubridate::days(time) - lubridate::days(1))
+          dplyr::mutate(time = basedate + lubridate::days(time)) #  - lubridate::days(1)
 
       }
 
