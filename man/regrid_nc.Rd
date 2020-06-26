@@ -7,7 +7,7 @@
 regrid_nc(
   obj,
   varname = "",
-  method = "bil",
+  fun = mean,
   outgrid = "",
   returnobj = FALSE,
   lonout = NA,
@@ -20,13 +20,17 @@ or a list returned from a \code{rbeni::read_nc_onefile()} function call.}
 
 \item{varname}{A character string specifying the variable name in the NetCDF file that is to be regridded,}
 
-\item{method}{Use \code{method == "bil"} for a bilinear interpolation using \code{cdo remapbil}. Use
+\item{fun}{A function used to aggregate values.
 \code{"max"} for a regridding by maximum using the raster R package.}
 
 \item{outgrid}{Use \code{outgrid = "halfdeg"} to regrid to half-degree grid (spanning -179.75 to 179.75 in
 longitude, and -89.75 to 89.75 in latitude).}
 
 \item{returnobj}{A boolean.}
+
+\item{lonout}{A numeric vector containing the longitude values of the output grid.}
+
+\item{latout}{A numeric vector containing the latitude values of the output grid.}
 }
 \value{
 If argument \code{retrunobj = TRUE}, the regridded object is returned.
