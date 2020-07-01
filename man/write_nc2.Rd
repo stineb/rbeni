@@ -14,8 +14,8 @@ write_nc2(
   lat = NA,
   z_dim = NA,
   time = NA,
-  make_zdim = FALSE,
-  make_tdim = FALSE,
+  make_zdim = NA,
+  make_tdim = NA,
   path = "./out.nc",
   verbose = FALSE,
   lonnam = "lon",
@@ -91,7 +91,7 @@ dimension specification are overridden.}
 \item{att_history}{Global attribute \code{"History"}.}
 }
 \value{
-Nothing
+The path of the written NetCDF file.
 }
 \description{
 Writes one or multiple arrays with identical dimensions to a NetCDF file,

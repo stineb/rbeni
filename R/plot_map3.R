@@ -22,13 +22,15 @@
 #' @param combine A boolean specifying whether the map and the colorscale should be combined using cowplot.
 #' Defaults to \code{TRUE}. If \code{FALSE}, a list of elements are retruned, where elements are the ggplot2 plot object
 #' and the coloscale object returned by the call to \link{plot_discrete_cbar}.
+#' @param varnam If \code{obj} is a rbeni-nc object (returned by \code{read_nc_onefile()}), \code{varnam} must be
+#' provided (a character string specifying the variable name in \code{obj$vars[[varnam]]}).
 #'
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
 plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
-											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, ...){
+											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
 	library(rworldmap)
 	library(cowplot)
@@ -113,7 +115,8 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   } else if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
 
     ## is a rbeni-nc element
-    df <- nc_to_df(obj) %>%
+    if (is.null(varnam)) rlang::abort("Error: provide the variable name to be plotted as argument varnam.")
+    df <- nc_to_df(obj, varnam = varnam) %>%
       rename(x=lon, y=lat) %>%
       dplyr::select(1:3) %>%
       setNames(c("x", "y", "layer"))
