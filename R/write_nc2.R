@@ -34,7 +34,7 @@
 #' @param att_title Global attribute \code{"Title"}.
 #' @param att_history Global attribute \code{"History"}.
 
-#' @return Nothing
+#' @return The path of the written NetCDF file.
 #' @export
 #'
 write_nc2 <- function(obj,
@@ -46,8 +46,8 @@ write_nc2 <- function(obj,
                       lat = NA,
                       z_dim = NA,
                       time  = NA,
-                      make_zdim = FALSE,
-                      make_tdim = FALSE,
+                      make_zdim = NA,
+                      make_tdim = NA,
                       path = "./out.nc",
                       verbose        = FALSE,
                       lonnam = "lon",
@@ -79,7 +79,7 @@ write_nc2 <- function(obj,
       if (identical(lon, NA)) lon <- obj$lon
       if (identical(lat, NA)) lat <- obj$lat
 
-      if ("time" %in% ls(obj)){
+      if ("time" %in% ls(obj) && is.na(make_tdim)){
         make_tdim <- TRUE
       } else {
         make_tdim <- FALSE
@@ -225,6 +225,7 @@ write_nc2 <- function(obj,
                       )
 
   ## Create file
+  rlang::inform(paste0("Writing to file: ", path, "..."))
   nc <- ncdf4::nc_create(path, varid, verbose = verbose)
 
   ## Write the data to the file
@@ -236,5 +237,7 @@ write_nc2 <- function(obj,
   ncdf4::ncatt_put( nc, varid = 0, "History", att_history, prec = NA, verbose = verbose, definemode = FALSE )
 
   ncdf4::nc_close(nc)
+
+  return(path)
 
 }
