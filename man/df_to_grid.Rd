@@ -19,7 +19,7 @@ grid with half-degree gridcell size and longitude values ranging from -179.75,
 -179.25, ... 179.75, and latitude values from -89.75, -89.25, ... 89.75.}
 }
 \value{
-An 2D matrix
+A 2D matrix
 }
 \description{
 Converts a data frame with longitude and latitude information to a a grid

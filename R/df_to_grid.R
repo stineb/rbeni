@@ -10,7 +10,7 @@
 #' to be used for defining the array (grid). Defaults to \code{"halfdeg"} (a global
 #' grid with half-degree gridcell size and longitude values ranging from -179.75,
 #' -179.25, ... 179.75, and latitude values from -89.75, -89.25, ... 89.75.
-#' @return An 2D matrix
+#' @return A 2D matrix
 #' @export
 #'
 df_to_grid <- function(df, varnam, grid = "halfdeg"){
