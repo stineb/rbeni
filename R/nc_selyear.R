@@ -9,9 +9,9 @@
 #'
 #'
 nc_selyear <- function(nc, years){
-  
+
   require(dplyr)
-  
+
   reduce_arr <- function(arr, idxs){
     if (length(dim(arr))==3){
       arr <- arr[,,idxs]
@@ -20,12 +20,21 @@ nc_selyear <- function(nc, years){
     }
     return(arr)
   }
-  
-  idx_select <- lubridate::year(lubridate::ymd(nc$time)) %in% selyears %>% 
-    which()  
-  
+
+  if ("POSIXt" %in% class(nc$time) || "Date" %in% class(nc$time)){
+    idx_select <- lubridate::year(nc$time) %in% years %>%
+      which()
+  } else {
+    idx_select <- nc$time %in% years %>%
+      which()
+  }
+
   nc$time <- nc$time[idx_select]
-  nc$vars <- purrr::map(nc$vars, ~reduce_arr(., idx_select))
+  if (length(ls(nc$vars))>1){
+    rlang::warn("nc_selyear(): Taking only first variable to subset years of available variables:\n")
+    rlang::warn(ls(nc$vars))
+  }  
+  nc$vars <- purrr::map(nc$vars[1], ~reduce_arr(., idx_select))
   
   return(nc)
 }

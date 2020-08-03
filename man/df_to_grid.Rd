@@ -4,7 +4,7 @@
 \alias{df_to_grid}
 \title{Converts a data frame to a a grid}
 \usage{
-df_to_grid(df, varnam, grid = "halfdeg")
+df_to_grid(df, varnam, lonnam = "lon", latnam = "lat")
 }
 \arguments{
 \item{df}{A data frame. Must have columns named \code{'lon'} and \code{'lat'}
@@ -13,10 +13,11 @@ by argument \code{maskfiln}.}
 
 \item{varnam}{A character string specifying the variable name in the data frame.}
 
-\item{grid}{A character string specifying the path of the NetCDF file that is
-to be used for defining the array (grid). Defaults to \code{"halfdeg"} (a global
-grid with half-degree gridcell size and longitude values ranging from -179.75,
--179.25, ... 179.75, and latitude values from -89.75, -89.25, ... 89.75.}
+\item{lonnam}{A character string specifying the column name containing longitude
+values. Defaults to \code{"lon}.}
+
+\item{latnam}{A character string specifying the column name containing longitude
+values. Defaults to \code{"lat}.}
 }
 \value{
 A 2D matrix
