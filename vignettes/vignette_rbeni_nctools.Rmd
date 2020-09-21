@@ -1,0 +1,82 @@
+---
+title: "Tools to work fast with NetCDF"
+author: "Beni Stocker"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\usepackage[utf8]{inputenc}
+  %\VignetteIndexEntry{Running the P-model in R}
+---
+
+The **rbeni** package contains a set of functions that let you do standard tasks working with NetCDF files on one line and let you quickly convert the contents of a NetCDF file into a tidy data frame (tibble).
+
+Here is a demonstration example.
+
+Load the package and read the contents of one NetCDF file.
+```{r}
+library(rbeni)
+nc <- read_nc_onefile("~/data/stocker20gmd_outputs/global/global_FULL_fAPAR3g_v2_2000_2016.a.gpp.nc")
+```
+
+The returned object `nc` is a list with:
+```{r}
+print(ls(nc))
+```
+
+- `lon`: vector of longitudes of gridcell mid-points
+- `lat`: vector of latitudes of gridcell mid-points
+- `time`: vector of dates created by `lubridate::ymd dates`
+- `varnams`: vector of all variable names as strings, 
+- `vars`: named list of the data arrays (lon x lat [x time]) for each variable. The names of that list correspond to `varnams`.
+
+```{r}
+## available variable names
+print(nc$varnams)
+
+## available variable arrays (names thereof)
+print(ls(nc$vars))
+
+## dimension of variable array number one
+print(dim(nc$vars[[1]]))
+```
+
+
+The object `nc` can be converted into a tidy dataframe.
+```{r}
+df <- nc_to_df(nc, varnam = "gpp")
+head(df)
+```
+The data frame is organised by gridcells along rows. Since the NetCDF contains multiple time steps, the time series are nested inside the column `data` for each gridcell.
+```{r}
+head(df$data[[1]])
+```
+Note that `df` contains rows for all gridcells, also those that have no data (here, non-land gridcells). That's why the above time series data frame is empty.
+
+The data frame can be converted back into a grid:
+```{r}
+gridded <- df_to_grid(df, varnam = "data")
+gridd
+```
+
+(This makes sense only if `df` is not a nested data frame and contains only data for one time step.)
+
+Since object `nc` contains data for multiple time steps, we can select a single time step and get an object that has only lon and lat.
+```{r}
+nc_2d <- slice_nc(nc, 1)
+```
+
+This can now be used to create a nice map.
+```{r}
+gg <- plot_map3(nc_2d, varnam = "gpp", plot_title = "GPP", latmin = -65, latmax = 85)
+gg
+```
+
+Very useful also to quickly write the `nc` object into a new NetCDF file.
+```{r}
+write_nc2(nc, path = "./test.nc")
+```
