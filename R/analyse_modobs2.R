@@ -11,7 +11,8 @@
 #' observed values in data frame \code{df}.
 #' @param type If \code{"points"}, uses \code{geom_points()}, if \code{"hex"}
 #' uses \code{ggplot2::geom_hex()}, if \code{"heat"} uses adjusted
-#' \code{geom_points()} with color indicating density
+#' \code{geom_points()} with color indicating density, if \code{"density"} uses
+#' \code{stat_density_2d()} to draws polygos of equal density.
 #' @param filnam A character string specifying the name of the file containing
 #' the plot. Defaults to \code{NA} (no file is created).
 #' @param relative A logical specifying whether the relative RMSE and bias (after
@@ -162,6 +163,30 @@ analyse_modobs2 <- function(
     gg <- df %>%
       ggplot(aes(x=mod, y=obs)) +
       geom_point() +
+      geom_abline(intercept=0, slope=1, linetype="dotted") +
+      # coord_fixed() +
+      # xlim(0,NA) +
+      # ylim(0,NA) +
+      theme_classic() +
+      labs(x = mod, y = obs)
+
+    if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
+    if (plot_linmod) gg <- + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
+
+    if (!identical(filnam, NA)) {
+      ggsave(filnam, width=5, height=5)
+    }
+
+  } else if (type=="density") {
+
+    ## points
+    gg <- df %>%
+      ggplot(aes(x=mod, y=obs)) +
+
+      stat_density_2d(aes(fill = after_stat(nlevel)), geom = "polygon") +
+      scale_fill_gradientn(colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5),
+                           guide = "legend") +
+
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
       # xlim(0,NA) +

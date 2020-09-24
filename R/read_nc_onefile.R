@@ -108,15 +108,28 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
 
     } else {
 
-      time_origin <- ncmeta::nc_atts(filn, timename) %>%
+      units_long <- ncmeta::nc_atts(filn, timename) %>%
         tidyr::unnest(cols = c(value)) %>%
         dplyr::filter(name == "units") %>%
-        dplyr::pull(value) %>%
-        stringr::str_remove("days since ") %>%
-        stringr::str_remove(" 00:00:00") %>%
-        lubridate::ymd()
+        dplyr::pull(value)
 
-      out$time <- lubridate::days(out$time) + time_origin
+      if (stringr::str_detect(units_long, "days since")){
+        time_origin <- units_long %>%
+          stringr::str_remove("days since ") %>%
+          stringr::str_remove(" 00:00:00") %>%
+          lubridate::ymd()
+
+        out$time <- time_origin + lubridate::days(out$time)
+
+      } else if (stringr::str_detect(units_long, "seconds since")){
+        time_origin <- units_long %>%
+          stringr::str_remove("seconds since ") %>%
+          lubridate::ymd_hms()
+
+        out$time <- time_origin + lubridate::seconds(out$time)
+
+      }
+
 
       # if (nc$dim[[timename]]$units=="days since 2001-1-1 0:0:0"){
       #
@@ -180,23 +193,4 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
   }
 
   return(out)
-}
-
-nc_flip_lat <- function(nc){
-
-  nlat <- length(nc$lat)
-
-  nc_flip_lat_byvar <- function(var, nlat){
-    if (length(dim(var))==2){
-      var <- var[,nlat:1]
-    }
-    return(var)
-  }
-
-  purrr::map(nc$vars, ~nc_flip_lat_byvar(., nlat = nlat))
-
-  # nc$vars[[1]] <- nc$vars[[1]][,nlat:1]
-
-  nc$lat <- rev(nc$lat)
-  return(nc)
 }

@@ -32,7 +32,8 @@ observed values in data frame \code{df}.}
 
 \item{type}{If \code{"points"}, uses \code{geom_points()}, if \code{"hex"}
 uses \code{ggplot2::geom_hex()}, if \code{"heat"} uses adjusted
-\code{geom_points()} with color indicating density}
+\code{geom_points()} with color indicating density, if \code{"density"} uses
+\code{stat_density_2d()} to draws polygos of equal density.}
 
 \item{filnam}{A character string specifying the name of the file containing
 the plot. Defaults to \code{NA} (no file is created).}
