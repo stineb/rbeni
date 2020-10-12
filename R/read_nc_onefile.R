@@ -4,6 +4,9 @@
 #'
 #' @param filn A character string specifying the full path of the NetCDF
 #' file to be read.
+#' @param varnam A character string specifying the variable name of the NetCDF file.
+#' Can also be a vector of character strings. Defaults to \code{NA}, that is: all
+#' available variables are read.
 #' @param date_origin A character string of format \code{"YYYY-MM-DD"}
 #' specifying the origin, day 0, of the time values provided in the NetCDF file.
 #' @param time_is_years A logical specifying whether the values provided by dimension
@@ -20,7 +23,7 @@
 #' variable.
 #' @export
 #'
-read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignore_time = FALSE){
+read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years = FALSE, ignore_time = FALSE){
 
   require(dplyr)
 
@@ -44,6 +47,8 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
       lonname <- "Longitude"
     } else if ("LONGITUDE" %in% dimnames){
       lonname <- "LONGITUDE"
+    } else if ("x" %in% dimnames){
+      lonname <- "x"
     }
   } else {
     lonname <- "lon"
@@ -58,6 +63,8 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
       latname <- "Latitude"
     } else if ("LATITUDE" %in% dimnames){
       latname <- "LATITUDE"
+    } else if ("y" %in% dimnames){
+      latname <- "y"
     }
   } else {
     latname <- "lat"
@@ -171,19 +178,19 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
   }
 
   # get variables
-  varnams <- ls(nc$var)
+  if (is.na(varnam)) varnam <- ls(nc$var)
   getvar <- function(varnam){
     #tibble( !!varnam := ncdf4::ncvar_get(nc, varnam) )
     out <- list()
     out[[varnam]] <- ncdf4::ncvar_get(nc, varnam)
   }
-  vars <- purrr::map(as.list(varnams), ~getvar(.)) %>%
-    setNames(varnams)
+  vars <- purrr::map(as.list(varnam), ~getvar(.)) %>%
+    setNames(varnam)
 
-  nc$var[[varnams[1]]]$units
+  nc$var[[varnam[1]]]$units
 
   out[["vars"]] <- vars
-  out[["varnams"]] <- varnams
+  out[["varnams"]] <- varnam
 
   if (length(out$lat)>1){
     if (out$lat[1]>out$lat[2]){
@@ -194,3 +201,23 @@ read_nc_onefile <- function(filn, date_origin = NA, time_is_years = FALSE, ignor
 
   return(out)
 }
+
+nc_flip_lat <- function(nc){
+
+  nc$lat <- rev(nc$lat)
+
+  # nlat <- length(nc$lat)
+  # nc$vars[[1]] <- nc$vars[[1]][,nlat:1]
+
+  arr_flip_lat <- function(arr){
+    nlat <- dim(arr)[2]
+    arr <- arr[,nlat:1]
+    return(arr)
+  }
+  nc$vars <- purrr::map(nc$vars[1], ~arr_flip_lat(.))
+
+  return(nc)
+}
+
+
+
