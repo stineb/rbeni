@@ -21,11 +21,14 @@
 #' @param single_basedate A logical specifying whether all files in the file list have the same
 #' base date (e.g., time units given in 'days since <basedate>').
 #' @param fgetdate A function to derive the date used for the time dimension based on the file name.
+#' @param overwrite A logical indicating whether time series files are to be overwritten.
 #'
 #' @return Nothing. Writes data to .RData files for each longitude index.
 #' @export
 #'
-nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA, lonnam = "lon", latnam = "lat", timenam = "time", timedimnam = "time", ncores = 1, single_basedate = FALSE, fgetdate = NA){
+nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA, 
+                         lonnam = "lon", latnam = "lat", timenam = "time", timedimnam = "time", 
+                         ncores = 1, single_basedate = FALSE, fgetdate = NA, overwrite = FALSE){
 
   require(dplyr)
   require(magrittr)
@@ -72,27 +75,28 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA, lonnam =
       multidplyr::cluster_assign(timenam = timenam) %>%
       multidplyr::cluster_assign(timedimnam = timedimnam) %>%
       multidplyr::cluster_assign(fgetdate = fgetdate) %>%
+      multidplyr::cluster_assign(overwrite = overwrite) %>%
       multidplyr::cluster_assign(nclist_to_df_byilon = nclist_to_df_byilon)
 
     ## distribute to cores, making sure all data from a specific site is sent to the same core
     df_out <- tibble(ilon = ilon) %>%
       multidplyr::partition(cl) %>%
       dplyr::mutate(out = purrr::map_int( ilon,
-                                      ~nclist_to_df_byilon(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate)))
+                                      ~nclist_to_df_byilon(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate, overwrite)))
 
   } else {
-    purrr::map(as.list(ilon), ~nclist_to_df_byilon(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate))
+    purrr::map(as.list(ilon), ~nclist_to_df_byilon(nclist, ., outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate, overwrite))
   }
 
 }
 
-nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate){
+nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam, latnam, basedate, timenam, timedimnam, fgetdate, overwrite){
 
   ## check whether output has been created already (otherwise do nothing)
   if (!dir.exists(outdir)){system(paste0("mkdir -p ", outdir))}
   outpath <- paste0(outdir, fileprefix, "_ilon_", ilon, ".RData")
 
-  if (!file.exists(outpath)){
+  if (!file.exists(outpath) | overwrite){
 
     ## get data from all files at given longitude index ilon
     df <- purrr::map(
