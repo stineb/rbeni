@@ -96,7 +96,43 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
   if (!dir.exists(outdir)){system(paste0("mkdir -p ", outdir))}
   outpath <- paste0(outdir, fileprefix, "_ilon_", ilon, ".RData")
 
-  if (!file.exists(outpath) | overwrite){
+  nclist_to_df_byfil <- function(filnam, ilon, basedate, varnam, lonnam, latnam, timenam, timedimnam, fgetdate){
+    
+    if (is.na(basedate) && is.na(fgetdate)){
+      ## get base date (to interpret time units in 'days since X')
+      basedate <- ncmeta::nc_atts(filnam, timenam) %>%
+        tidyr::unnest(cols = c(value)) %>%
+        dplyr::filter(name == "units") %>%
+        dplyr::pull(value) %>%
+        stringr::str_remove("days since ") %>%
+        stringr::str_remove(" 00:00:00") %>%
+        lubridate::ymd()
+    }
+    
+    df <- tidync::tidync(filnam) %>%
+      tidync::hyper_filter(lon = index == ilon) %>%
+      tidync::hyper_tibble(select_var(varnam))
+    
+    if (nrow(df)>0){
+      
+      if (!is.na(fgetdate)){
+        df <- df %>%
+          dplyr::rename(lon = !!lonnam, lat = !!latnam) %>%
+          dplyr::mutate(time = fgetdate(filnam))
+        
+      } else {
+        df <- df %>%
+          dplyr::rename(time = !!timedimnam, lon = !!lonnam, lat = !!latnam) %>%
+          dplyr::mutate(time = basedate + lubridate::days(time)) #  - lubridate::days(1)
+        
+      }
+      
+    }
+    
+    return(df)
+  }
+  
+  if (!file.exists(outpath) || overwrite){
 
     ## get data from all files at given longitude index ilon
     df <- purrr::map(
@@ -126,41 +162,4 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
   }
 
   return(ilon)
-}
-
-
-nclist_to_df_byfil <- function(filnam, ilon, basedate, varnam, lonnam, latnam, timenam, timedimnam, fgetdate){
-  
-  if (is.na(basedate) && is.na(fgetdate)){
-    ## get base date (to interpret time units in 'days since X')
-    basedate <- ncmeta::nc_atts(filnam, timenam) %>%
-      tidyr::unnest(cols = c(value)) %>%
-      dplyr::filter(name == "units") %>%
-      dplyr::pull(value) %>%
-      stringr::str_remove("days since ") %>%
-      stringr::str_remove(" 00:00:00") %>%
-      lubridate::ymd()
-  }
-  
-  df <- tidync::tidync(filnam) %>%
-    tidync::hyper_filter(lon = index == ilon) %>%
-    tidync::hyper_tibble(select_var(varnam))
-  
-  if (nrow(df)>0){
-    
-    if (!is.na(fgetdate)){
-      df <- df %>%
-        dplyr::rename(lon = !!lonnam, lat = !!latnam) %>%
-        dplyr::mutate(time = fgetdate(filnam))
-      
-    } else {
-      df <- df %>%
-        dplyr::rename(time = !!timedimnam, lon = !!lonnam, lat = !!latnam) %>%
-        dplyr::mutate(time = basedate + lubridate::days(time)) #  - lubridate::days(1)
-      
-    }
-    
-  }
-  
-  return(df)
 }
