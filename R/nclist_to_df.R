@@ -109,6 +109,7 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
         lubridate::ymd()
     }
     
+    print(paste("reading", filnam))
     df <- tidync::tidync(filnam) %>%
       tidync::hyper_filter(lon = index == ilon) %>%
       tidync::hyper_tibble(select_var(varnam))
