@@ -151,12 +151,12 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
         dplyr::group_by(lon, lat) %>%
         tidyr::nest() %>%
         dplyr::mutate(data = purrr::map(data, ~arrange(., time)))
-
-      print(paste("Writing file", outpath, "..."))
-      save(df, file = outpath)
-      rm("df")
     }
-
+    
+    print(paste("Writing file", outpath, "..."))
+    save(df, file = outpath)
+    rm("df")
+    
   } else {
     print(paste("File exists already:", outpath))
   }
