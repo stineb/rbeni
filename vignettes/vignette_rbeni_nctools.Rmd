@@ -10,16 +10,19 @@ output:
 vignette: >
   %\VignetteEngine{knitr::knitr}
   %\usepackage[utf8]{inputenc}
-  %\VignetteIndexEntry{Running the P-model in R}
+  %\VignetteIndexEntry{NetCDF tools}
 ---
 
-The **rbeni** package contains a set of functions that let you do standard tasks working with NetCDF files on one line and let you quickly convert the contents of a NetCDF file into a tidy data frame (tibble).
+The [**rbeni**](https://github.com/stineb/rbeni) package contains a set of functions that let you do standard tasks working with NetCDF files on one line and let you quickly convert the contents of a NetCDF file into a tidy data frame (tibble).
 
 Here is a demonstration example.
 
+## Read
+
 Load the package and read the contents of one NetCDF file.
-```{r}
+```{r message=FALSE}
 library(rbeni)
+library(tidyverse)  # depends
 nc <- read_nc_onefile("~/data/stocker20gmd_outputs/global/global_FULL_fAPAR3g_v2_2000_2016.a.gpp.nc")
 ```
 
@@ -45,36 +48,41 @@ print(ls(nc$vars))
 print(dim(nc$vars[[1]]))
 ```
 
+## Make tidy
 
 The object `nc` can be converted into a tidy dataframe.
-```{r}
+```{r eval=FALSE}
 df <- nc_to_df(nc, varnam = "gpp")
 head(df)
 ```
 The data frame is organised by gridcells along rows. Since the NetCDF contains multiple time steps, the time series are nested inside the column `data` for each gridcell.
-```{r}
+```{r eval=FALSE}
 head(df$data[[1]])
 ```
 Note that `df` contains rows for all gridcells, also those that have no data (here, non-land gridcells). That's why the above time series data frame is empty.
-
-The data frame can be converted back into a grid:
-```{r}
-gridded <- df_to_grid(df, varnam = "data")
-gridd
-```
-
-(This makes sense only if `df` is not a nested data frame and contains only data for one time step.)
 
 Since object `nc` contains data for multiple time steps, we can select a single time step and get an object that has only lon and lat.
 ```{r}
 nc_2d <- slice_nc(nc, 1)
 ```
 
+This 2D data frame can be converted back into a grid:
+```{r eval=FALSE}
+gridded <- df_to_grid(nc_2d, varnam = "data")
+gridded
+```
+
+(This makes sense only if `df` is not a nested data frame and contains only data for one time step.)
+
+## Plot
+
 This can now be used to create a nice map.
-```{r}
+```{r message=FALSE}
 gg <- plot_map3(nc_2d, varnam = "gpp", plot_title = "GPP", latmin = -65, latmax = 85)
 gg
 ```
+
+## Write
 
 Very useful also to quickly write the `nc` object into a new NetCDF file.
 ```{r}
