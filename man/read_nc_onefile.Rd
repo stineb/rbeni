@@ -6,6 +6,7 @@
 \usage{
 read_nc_onefile(
   filn,
+  varnam = NA,
   date_origin = NA,
   time_is_years = FALSE,
   ignore_time = FALSE
@@ -14,6 +15,10 @@ read_nc_onefile(
 \arguments{
 \item{filn}{A character string specifying the full path of the NetCDF
 file to be read.}
+
+\item{varnam}{A character string specifying the variable name of the NetCDF file.
+Can also be a vector of character strings. Defaults to \code{NA}, that is: all
+available variables are read.}
 
 \item{date_origin}{A character string of format \code{"YYYY-MM-DD"}
 specifying the origin, day 0, of the time values provided in the NetCDF file.}
