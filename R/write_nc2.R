@@ -136,7 +136,7 @@ write_nc2 <- function(obj,
       if (is.na(make_tdim)){
         if (identical(time, NA)) {rlang::abort("Aborting. No time vector provided.")}
       }
-    } else {
+    } else if (length(vardims)==3) {
       if (make_zdim) {
         if (length(z_dim)==1){
           if (identical(z_dim, NA)) {rlang::abort("No z_dim vector provided")}
@@ -147,6 +147,9 @@ write_nc2 <- function(obj,
           rlang::abort("No time provided")
         }
       }
+    } else if (length(vardims)==2){
+      make_zdim <- FALSE
+      make_tdim <- FALSE
     }
 
     if (length(vardims)==3 && identical(z_dim, NA) && identical(time, NA) ){
@@ -173,7 +176,11 @@ write_nc2 <- function(obj,
           tmp[,,1] <- obj
           var[[1]] <- tmp
         }
-      }
+      } 
+    } else {
+      print("output array has two dimensions")
+      tmp <- array(NA,dim=dim(obj))
+      var[[1]] <- obj
     }
 
   }

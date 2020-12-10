@@ -125,10 +125,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
     ## is already a data frame. thanks.
     df <- as_tibble(obj) %>%
-      rename(x=lon, y=lat) %>%
-      dplyr::select(1:3) %>%
-      setNames(c("x", "y", "layer"))
-
+      dplyr::select(x = lon, y = lat, layer = !!varnam)
   }
 
 
