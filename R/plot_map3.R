@@ -125,6 +125,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
     ## is already a data frame. thanks.
     df <- as_tibble(obj) %>%
+      dplyr::filter(lon > lonmin & lon < lonmax & lat > latmin & lat < latmax) %>%
       rename(x=lon, y=lat) %>%
       dplyr::select(x, y, !!varnam) %>%
       setNames(c("x", "y", "layer"))
@@ -174,7 +175,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	  colorscale <- colorscale(nbin, direction = -1)
 
-	} else if (class(colorscale)=="character") {
+	} else if (class(colorscale)=="character"){
 
 	  colorscale <- colorRampPalette( colorscale )( nbin )
 
@@ -246,8 +247,8 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
     scale_fill_manual(values=colorscale) +
     scale_color_manual(values=colorscale) +
 
-    scale_x_continuous(expand = c(0,0), limits = c(-180,180), breaks = lon.labels, labels = b) +
-    scale_y_continuous(expand = c(0,0), limits = c(-60,85),   breaks = lat.labels, labels = a) +
+    scale_x_continuous(expand = c(0,0), limits = c(-lonmin,lonmax), breaks = lon.labels, labels = b) +
+    scale_y_continuous(expand = c(0,0), limits = c(-latmin,latmax), breaks = lat.labels, labels = a) +
 
 	  labs( x = "", y = "", title = plot_title, subtitle = plot_subtitle) +
 

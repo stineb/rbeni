@@ -2,10 +2,14 @@
 #'
 #' Returns a ggplot object for an empty global map
 #'
+#' @param lonmin Left edge (longitude, in degrees), defaults to -180.
+#' @param lonmax Right edge (longitude, in degrees), defaults to 180.
+#' @param latmin Lower edge (latitude, in degrees), defaults to -90.
+#' @param latmax Upper edge (latitude, in degrees), defaults to 90.
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map_simpl <- function(){
+plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 85){
 
 	library(rworldmap)
   library(ggplot2)
@@ -60,13 +64,13 @@ plot_map_simpl <- function(){
 	gg <- ggplot() +
 
 		# background countries
-	  geom_polygon(data=sPDF, aes(long, lat, group=group), color=NA, fill='grey75') +
+	  geom_polygon(data=sPDF, aes(long, lat, group=group), color="black", fill='grey75') +
 
 		# Coastline
 		geom_path(data=coastsCoarse, aes(long, lat, group=group), color='black') +
 
-    scale_x_continuous(expand = c(0,0), breaks = lon.labels, labels = b) +
-    scale_y_continuous(expand = c(0,0), limits = c(-60,85),   breaks = lat.labels, labels = a) +
+    scale_x_continuous(expand = c(0,0), limits = c(lonmin,lonmax), breaks = lon.labels, labels = b) +
+    scale_y_continuous(expand = c(0,0), limits = c(latmin,latmax),   breaks = lat.labels, labels = a) +
 	  labs( x = "", y = "")
 
   return(gg)
