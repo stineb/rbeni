@@ -46,8 +46,8 @@ write_nc2 <- function(obj,
                       lat = NA,
                       z_dim = NA,
                       time  = NA,
-                      make_zdim = NA,
-                      make_tdim = NA,
+                      make_zdim = FALSE,
+                      make_tdim = FALSE,
                       path = "./out.nc",
                       verbose        = FALSE,
                       lonnam = "lon",
@@ -127,6 +127,7 @@ write_nc2 <- function(obj,
     if (length(lon)!=vardims[1]){rlang::abort("Aborting. Longitude vector provided does not match the first dimension of the argument 'obj'.")}
     if (length(lat)!=vardims[2]){rlang::abort("Aborting. Latitude vector provided does not match the second dimension of the argument 'obj'.")}
 
+    ## sanity checks
     if (length(vardims)==4){
       make_zdim==TRUE
       make_tdim==TRUE
@@ -142,7 +143,7 @@ write_nc2 <- function(obj,
           if (identical(z_dim, NA)) {rlang::abort("No z_dim vector provided")}
         }
       }
-      if (!is.na(time) || make_tdim) {
+      if (!is.na(time) || make_tdim){
         if (make_tdim && is.na(time)){
           rlang::abort("No time provided")
         }
@@ -158,7 +159,7 @@ write_nc2 <- function(obj,
       rlang::abort("Aborting.")
     }
 
-    if ((length(vardims)==2 && make_tdim)||(length(vardims)==2 && make_zdim)) {
+    if (length(vardims)==2){
       if (make_tdim) {
         if (length(time)!=1){
           print("time vector can only have length 1")
@@ -182,7 +183,6 @@ write_nc2 <- function(obj,
       tmp <- array(NA,dim=dim(obj))
       var[[1]] <- obj
     }
-
   }
 
   ## Define dimensions
