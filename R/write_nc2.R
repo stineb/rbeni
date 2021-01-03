@@ -177,6 +177,9 @@ write_nc2 <- function(obj,
           tmp[,,1] <- obj
           var[[1]] <- tmp
         }
+      } else {
+        ## simple 2D lon-lat object
+        var[[1]] <- obj
       } 
     } else {
       print("output array has two dimensions")
