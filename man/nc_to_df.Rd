@@ -7,6 +7,8 @@
 nc_to_df(
   obj,
   varnam,
+  lon = NA,
+  lat = NA,
   do_get_ilon_ilat = FALSE,
   dropna = FALSE,
   filn = NA,
@@ -18,6 +20,10 @@ nc_to_df(
 object returned by function \link{read_nc_onefile()}.}
 
 \item{varnam}{A character string specifying the variable name in the NetCDF file.}
+
+\item{lon}{A numeric vector specifying longitude values. Defaults to \code{NA}.}
+
+\item{lat}{A numeric vector specifying latitude values. Defaults to \code{NA}.}
 
 \item{do_get_ilon_ilat}{A boolean specifying whether longitude and latitude
 indices are added to the data frame. Defaults to \code{FALSE}.}

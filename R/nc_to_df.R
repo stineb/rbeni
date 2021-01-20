@@ -6,6 +6,9 @@
 #' @param obj Either character string specifying the NetCDF file path to be read or a
 #' object returned by function \link{read_nc_onefile()}.
 #' @param varnam A character string specifying the variable name in the NetCDF file.
+#' @param lon A numeric vector specifying longitude values. Defaults to \code{NA}.
+#' @param lat A numeric vector specifying latitude values. Defaults to \code{NA}.
+#' @param varnam A character string specifying the variable name in the NetCDF file.
 #' @param do_get_ilon_ilat A boolean specifying whether longitude and latitude
 #' indices are added to the data frame. Defaults to \code{FALSE}.
 #' @param dropna A boolean specifying wether rows where the data variable is NA should
@@ -19,7 +22,7 @@
 #' @return A data frame if \code{filn == NA}, otherwise nothing is returned.
 #' @export
 #'
-nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn = NA, verbose = FALSE){
+nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, dropna = FALSE, filn = NA, verbose = FALSE){
 
   hastime <- FALSE
 
@@ -49,17 +52,25 @@ nc_to_df <- function(obj, varnam, do_get_ilon_ilat = FALSE, dropna = FALSE, filn
 
   }
 
+  ## get longitude and latitude values
+  if (identical(NA, lon)){
+    lon <- nc$lon
+  }
+  if (identical(NA, lat)){
+    lat <- nc$lat
+  }
+
   # expand to data frame
   if (verbose) print("Expanding data ...")
   if (hastime){
 
-    df <- expand.grid(nc$lon, nc$lat, nc$time) %>%
+    df <- expand.grid(lon, lat, nc$time) %>%
       setNames(c("lon", "lat", "time")) %>%
       as_tibble()
 
   } else {
 
-    df <- expand.grid(nc$lon, nc$lat) %>%
+    df <- expand.grid(lon, lat) %>%
       setNames(c("lon", "lat")) %>%
       as_tibble()
 

@@ -178,12 +178,15 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	  colorscale <- colorRampPalette( colorscale )( nbin )
 
-	} else if (class(colorscale) == "palette") {
-	  
-	  colorscale <- colorscale
-	  
+	} else if (class(colorscale)=="palette"){
+
+	  ## nothing to do in this case
+	  #colorscale <- colorscale
+
 	} else {
+
 	  rlang::abort("colorscale could not be set.")
+
 	}
 
 
