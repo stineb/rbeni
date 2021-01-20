@@ -140,7 +140,7 @@ analyse_modobs2 <- function(
     ## ggplot hexbin
     gg <- df %>%
       ggplot2::ggplot(aes(x=mod, y=obs)) +
-      geom_hex() +
+      geom_hex(bins = 100) +
       scale_fill_gradientn(
         colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5)) +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
@@ -183,9 +183,14 @@ analyse_modobs2 <- function(
     gg <- df %>%
       ggplot(aes(x=mod, y=obs)) +
 
-      stat_density_2d(aes(fill = after_stat(nlevel)), geom = "polygon") +
-      scale_fill_gradientn(colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5),
-                           guide = "legend") +
+      stat_density_2d(
+        geom = "raster", #the geometric object to display the data (in this case: rectangles)
+        aes(fill = after_stat(density)), #using `density`, a variable calculated by the stat
+        contour = FALSE 
+      ) +
+      
+      scale_fill_gradientn(colours = colorRampPalette( c("white", "gray65", "navy", "red", "yellow"))(6),
+                           guide = FALSE) +
 
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
