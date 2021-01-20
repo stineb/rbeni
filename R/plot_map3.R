@@ -43,7 +43,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	##---------------------------------------------
 	## interpret object
 	##---------------------------------------------
-	if (class(obj)=="character"){
+	if (identical(class(obj), "character")){
 
 		## read as raster brick
 		rasta <- raster::brick(obj)
@@ -68,7 +68,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 		names(df) <- c("layer", "x", "y")
 
 
-	} else if (class(obj)=="matrix"){
+	} else if (identical(class(obj), "matrix")){
 
 		## Complement info of matrix
     if (length(dim(obj))==2){
@@ -104,7 +104,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
       rlang::abort("Aborted. Argument obj is a matrix but does not have two dimensions.")
     }
 
-  } else if (class(obj)[[1]] == "RasterBrick"){
+  } else if (identical(class(obj)[[1]], "RasterBrick")){
 
     ## convert into data frame with longitude (x) and latitude (y)
     ## convert object into data frame
@@ -126,11 +126,24 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
     ## is already a data frame. thanks.
     df <- as_tibble(obj) %>%
       dplyr::filter(lon > lonmin & lon < lonmax & lat > latmin & lat < latmax) %>%
-      rename(x=lon, y=lat) %>%
-      dplyr::select(x, y, !!varnam) %>%
-      setNames(c("x", "y", "layer"))
+      rename(x=lon, y=lat)
+      # dplyr::select(x, y, !!varnam) %>%
+      # setNames(c("x", "y", "layer"))
   }
 
+	## of more than one variable is available, make varnam a required argument
+	if (is.null(varnam)){
+	  varnam <- names(df %>% dplyr::select(-x, -y))
+	  if (length(varnam) > 1){
+	    rlang::abort(paste("Aborting. Argument varnam not provided and more than one variable available. Which one to take?"))
+	  }
+	}
+
+	## reduce and rename	
+	df <- df %>% 
+	  dplyr::select(x, y, !!varnam) %>%
+	  setNames(c("x", "y", "layer"))
+	  
 
 	##---------------------------------------------
 	## Bin data

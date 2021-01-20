@@ -1,21 +1,42 @@
-#' Extracts a variable from an nc object
+#' Extracts point data from a raster file
 #'
-#' Extracts a variable from an nc object
+#' Extracts point data from a raster file (e.g. a NetCDF file)
 #'
-#' @param obj a list returned from a \code{rbeni::read_nc_onefile()} function call.
-#' @param var a character specifying the variable name to be extracted.
-#' @return A list, containing \code{"lon"} (vector of longitudes of
-#' gridcell mid-points), \code{"lat"} (vector of latitudes of gridcell
-#' mid-points), \code{"time"} (vector of lubridate::ymd dates),
-#' \code{"varnams"} (a vector of all variable names as strings), and a
-#' named (nested) list of the data arrays (lon x lat x time) for each
-#' variable.
+#' @param df  A data frame containing columns \code{lon} and \code{lat}
+#' specifying longitude and latitude values of points for which data is
+#' to be extracted (points organised by rows).
+#' @param filn A character string specifying the path to a raster file that can be read with
+#' \code{raster::brick} or \code{raster::raster}.
+#' @return A data frame of the same number of rows as \code{df} with extracted data
+#' nested in column \code{data}.
 #' @export
 #'
-extract_nc <- function(obj, var){
+extract_nc <- function(df, filn, get_time = FALSE){
 
-  obj$vars <- obj$vars[var]
-  obj$varnams <- obj$varnams[which(obj$varnams %in% var)]
+  rasta <- raster::brick(filn)
 
-  return(obj)
+  df <- raster::extract(
+    rasta,
+    sp::SpatialPoints(dplyr::select(df, lon, lat)), # , proj4string = rasta@crs
+    sp = TRUE
+  ) %>%
+    as_tibble() %>%
+    tidyr::nest(data = c(-lon, -lat)) %>%
+    right_join(df, by = c("lon", "lat")) %>%
+    mutate( data = purrr::map(data, ~dplyr::slice(., 1)) ) %>%
+    dplyr::mutate(data = purrr::map(data, ~t(.))) %>%
+    dplyr::mutate(data = purrr::map(data, ~as_tibble(.)))
+
+  ## xxx todo: use argument df = TRUE in the extract() function call in order to
+  ## return a data frame directly (and not having to rearrange the data afterwards)
+  ## xxx todo: implement the GWR method for interpolating using elevation as a
+  ## covariate here.
+
+  if (get_time){
+    timevals <- raster::getZ(rasta)
+    df <- df %>%
+      mutate( data = purrr::map(data, ~bind_cols(., tibble(date = timevals))))
+  }
+
+  return(df)
 }
