@@ -14,6 +14,7 @@
 #' @param ignore_time A logical specifying whether file has a time dimension Use this to
 #' ignore if it has a time dimension of length 1 by \code{has_time=TRUE}. Defaults to
 #' \code{FALSE}.
+#' @param check_flip A logical specifying whether order of latitude values should be checked.
 #'
 #' @return A list, containing \code{"lon"} (vector of longitudes of
 #' gridcell mid-points), \code{"lat"} (vector of latitudes of gridcell
@@ -23,7 +24,8 @@
 #' variable.
 #' @export
 #'
-read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years = FALSE, ignore_time = FALSE){
+read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years = FALSE, ignore_time = FALSE,
+                            check_flip = FALSE){
 
   require(dplyr)
 
@@ -192,10 +194,12 @@ read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years =
   out[["vars"]] <- vars
   out[["varnams"]] <- varnam
 
-  if (length(out$lat)>1){
-    if (out$lat[1]>out$lat[2]){
-      ## Flip latitudes
-      out <- nc_flip_lat(out)
+  if (check_flip){
+    if (length(out$lat)>1){
+      if (out$lat[1]>out$lat[2]){
+        ## Flip latitudes
+        out <- nc_flip_lat(out)
+      }
     }
   }
 

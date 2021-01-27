@@ -248,26 +248,26 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	a <- sapply( lat.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
 	b <- sapply( lon.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
-
+	
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
 	ggmap <- ggplot() +
 
 		# background countries
-	  geom_polygon(data=sPDF, aes(long, lat, group=group), color=NA, fill='grey95') +
+	  geom_polygon(data = sPDF, aes(long, lat, group = group), color=NA, fill='grey95') +
 
 		# rasta_reproj grid
-		geom_tile(data=df, aes(x=x, y=y, fill=layercut, color=layercut), show.legend = FALSE) +
+		geom_tile(data=df, aes(x = x, y = y, fill=layercut, color = layercut), show.legend = FALSE) +
 
 		# Coastline
-		geom_path(data=coastsCoarse, aes(long, lat, group=group), color='black') +
+		geom_path(data=coastsCoarse, aes(long, lat, group = group), color='black') +
 
     scale_fill_manual(values=colorscale) +
     scale_color_manual(values=colorscale) +
 
-    scale_x_continuous(expand = c(0,0), limits = c(-lonmin,lonmax), breaks = lon.labels, labels = b) +
-    scale_y_continuous(expand = c(0,0), limits = c(-latmin,latmax), breaks = lat.labels, labels = a) +
+    scale_x_continuous(expand = c(0, 0), limits = c(-lonmin, lonmax), breaks = lon.labels, labels = b) +
+    scale_y_continuous(expand = c(0, 0), limits = c(-latmin, latmax), breaks = lat.labels, labels = a) +
 
 	  labs( x = "", y = "", title = plot_title, subtitle = plot_subtitle) +
 

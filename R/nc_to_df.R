@@ -31,7 +31,7 @@ nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, 
     if (verbose) print(paste("Reading ", obj, "..."))
 
     # a character is provided by 'obj' -> read file into rbeni-nc object
-    nc <- read_nc_onefile(obj)
+    nc <- read_nc_onefile(obj, varnam = varnam)
 
     if ("time" %in% ls(nc)){
       hastime <- TRUE

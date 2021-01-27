@@ -23,6 +23,16 @@
 #' to \code{TRUE}.
 #' @param plot_linmod A boolean specifying whether to display the fitted linear
 #' regression as a red line. Defaults to \code{TRUE}.
+#' @param label A boolean specifying whether points should be labelled using ggrepel. 
+#' Defaults to \code{FALSE}. Only available for \code{type = "points}. Use argument
+#' \code{nlabels} to specify how many points should be labelled, starting with points
+#' that have the largest residuals from the linear regression fit.
+#' @param id A character string specifying the column name that identifies the points.
+#' The column's values must be of type integer and is used to label points in case of 
+#' \code{label = TRUE}.
+#' @param nlabels An integer specifying how many points to be labelled, starting with points
+#' that have the largest residuals from the linear regression fit. Only available 
+#' for \code{type = "points}. Defaults to one.
 #'
 #' @export
 #'
@@ -41,6 +51,9 @@ analyse_modobs2 <- function(
   shortsubtitle = FALSE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
+  label       = FALSE,
+  id          = NULL,
+  nlabels     = 1,
   ...
   ){
 
@@ -53,11 +66,21 @@ analyse_modobs2 <- function(
   #if (identical(filnam, NA)) filnam <- "analyse_modobs.pdf"
 
   ## rename to 'mod' and 'obs' and remove rows with NA in mod or obs
-  df <- df %>%
-    as_tibble() %>%
-    ungroup() %>%
-    dplyr::select(mod=mod, obs=obs) %>%
-    tidyr::drop_na(mod, obs)
+  if (label){
+    df <- df %>%
+      as_tibble() %>%
+      ungroup() %>%
+      dplyr::select(mod=mod, obs=obs, id=!!id) %>%
+      tidyr::drop_na(mod, obs)
+    
+  } else {
+    df <- df %>%
+      as_tibble() %>%
+      ungroup() %>%
+      dplyr::select(mod=mod, obs=obs) %>%
+      tidyr::drop_na(mod, obs)
+    
+  }
 
   ## get linear regression (coefficients)
   linmod <- lm( obs ~ mod, data=df )
@@ -158,17 +181,37 @@ analyse_modobs2 <- function(
     }
 
   } else if (type=="points") {
+    
+    if (label){
+      df <- df %>% 
+        dplyr::mutate(.res = mod - obs) %>% 
+        dplyr::mutate(.absres = abs(.res)) %>% 
+        dplyr::arrange(desc(.absres)) %>% 
+        dplyr::mutate(.rankres = 1:n()) %>% 
+        dplyr::mutate(.dolab = ifelse(.rankres <= nlabels, TRUE, FALSE)) 
+      
+      ## points with labels
+      library(ggrepel)
+      gg <- df %>%
+        ggplot(aes(x=mod, y=obs, label = ifelse(.dolab, id, ""))) +
+        geom_point() +
+        geom_label_repel(min.segment.length = 0, seed = 42, box.padding = 0.5) +
+        geom_point(data = dplyr::filter(df, .dolab), color = "red") +
+        geom_abline(intercept=0, slope=1, linetype="dotted") +
+        theme_classic() +
+        labs(x = mod, y = obs)
+      
+    } else {
+      ## points
+      gg <- df %>%
+        ggplot(aes(x=mod, y=obs)) +
+        geom_point() +
+        geom_abline(intercept=0, slope=1, linetype="dotted") +
+        theme_classic() +
+        labs(x = mod, y = obs)
+      
+    }
 
-    ## points
-    gg <- df %>%
-      ggplot(aes(x=mod, y=obs)) +
-      geom_point() +
-      geom_abline(intercept=0, slope=1, linetype="dotted") +
-      # coord_fixed() +
-      # xlim(0,NA) +
-      # ylim(0,NA) +
-      theme_classic() +
-      labs(x = mod, y = obs)
 
     if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
     if (plot_linmod) gg <- gg + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
