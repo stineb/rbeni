@@ -17,6 +17,9 @@ analyse_modobs2(
   shortsubtitle = FALSE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
+  label = FALSE,
+  id = NULL,
+  nlabels = 1,
   ...
 )
 }
@@ -49,6 +52,19 @@ to \code{TRUE}.}
 
 \item{plot_linmod}{A boolean specifying whether to display the fitted linear
 regression as a red line. Defaults to \code{TRUE}.}
+
+\item{label}{A boolean specifying whether points should be labelled using ggrepel. 
+Defaults to \code{FALSE}. Only available for \code{type = "points}. Use argument
+\code{nlabels} to specify how many points should be labelled, starting with points
+that have the largest residuals from the linear regression fit.}
+
+\item{id}{A character string specifying the column name that identifies the points.
+The column's values must be of type integer and is used to label points in case of 
+\code{label = TRUE}.}
+
+\item{nlabels}{An integer specifying how many points to be labelled, starting with points
+that have the largest residuals from the linear regression fit. Only available 
+for \code{type = "points}. Defaults to one.}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled

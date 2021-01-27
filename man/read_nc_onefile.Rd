@@ -9,7 +9,8 @@ read_nc_onefile(
   varnam = NA,
   date_origin = NA,
   time_is_years = FALSE,
-  ignore_time = FALSE
+  ignore_time = FALSE,
+  check_flip = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ specifying the origin, day 0, of the time values provided in the NetCDF file.}
 \item{ignore_time}{A logical specifying whether file has a time dimension Use this to
 ignore if it has a time dimension of length 1 by \code{has_time=TRUE}. Defaults to
 \code{FALSE}.}
+
+\item{check_flip}{A logical specifying whether order of latitude values should be checked.}
 }
 \value{
 A list, containing \code{"lon"} (vector of longitudes of
