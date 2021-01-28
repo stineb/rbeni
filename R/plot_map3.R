@@ -117,9 +117,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
     ## is a rbeni-nc element
     if (is.null(varnam)) rlang::abort("Error: provide the variable name to be plotted as argument varnam.")
     df <- nc_to_df(obj, varnam = varnam) %>%
-      rename(x=lon, y=lat) %>%
-      dplyr::select(1:3) %>%
-      setNames(c("x", "y", "layer"))
+      rename(x=lon, y=lat)
 
   } else if (is.data.frame(obj)){
 

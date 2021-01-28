@@ -86,6 +86,10 @@ nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, 
       tidyr::drop_na(myvar)
   }
 
+  ## rename 
+  df <- df %>% 
+    rename(!!varnam := myvar)
+  
   ## nest data per gridcell
   if (hastime){
     if (verbose) print("Nesting data ...")
