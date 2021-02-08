@@ -117,6 +117,7 @@ read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years =
 
     } else {
 
+      ## get time units
       units_long <- ncmeta::nc_atts(filn, timename) %>%
         tidyr::unnest(cols = c(value)) %>%
         dplyr::filter(name == "units") %>%
@@ -126,6 +127,7 @@ read_nc_onefile <- function(filn, varnam = NA, date_origin = NA, time_is_years =
         time_origin <- units_long %>%
           stringr::str_remove("days since ") %>%
           stringr::str_remove(" 00:00:00") %>%
+          stringr::str_remove(" 0:0:0") %>%
           lubridate::ymd()
 
         out$time <- time_origin + lubridate::days(out$time)

@@ -25,14 +25,14 @@ integrate_lonlat <- function(ifil, landfil = NA, varnam = NA, ...){
 
   nc <- read_nc_onefile(ofil, ...)
 
-  if (!is.na(varnam)){
-    df <- tibble(time = nc$time, var = nc$vars[[ varnam ]]) %>%
+  if (length(nc$time)>0){
+    df <- tibble(time = nc$time, var = nc$vars[[ nc$varnams[1] ]]) %>%
       setNames(c("date", varnam))
   } else {
-    df <- tibble(time = nc$time, var = nc$vars[[ nc$varnams[1] ]]) %>%
-      setNames(c("date", nc$varnams[1]))
+    df <- tibble(date = NA, var = nc$vars[[ nc$varnams[1] ]]) %>%
+      setNames(c("date", varnam))
   }
-
+  
   system(paste("rm", ofil))
 
   return(df)

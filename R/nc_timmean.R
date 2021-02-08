@@ -7,12 +7,12 @@
 #' @return An nc object
 #' @export
 #'
-nc_timmean <- function(ifil, return_ofil = FALSE){
+nc_timmean <- function(ifil, return_ofil = NA){
 
   ofil <- file.path(tempdir(), paste0("ofil_", basename(ifil)))
   system(paste0("cdo timmean ", ifil, " ", ofil))
 
-  if (return_ofil){
+  if (!identical(return_ofil, NA)){
     return(ofil)
   } else {
     nc <- read_nc_onefile(ofil)
