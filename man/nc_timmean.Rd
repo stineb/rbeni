@@ -4,7 +4,7 @@
 \alias{nc_timmean}
 \title{Takes mean across time steps}
 \usage{
-nc_timmean(ifil, return_ofil = FALSE)
+nc_timmean(ifil, return_ofil = NA)
 }
 \arguments{
 \item{ifil}{Input file name}
