@@ -256,7 +256,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  geom_polygon(data = sPDF, aes(long, lat, group = group), color=NA, fill='grey95') +
 
 		# rasta_reproj grid
-		geom_tile(data=df, aes(x = x, y = y, fill=layercut, color = layercut), show.legend = FALSE) +
+		geom_tile(data=df, aes(x = x, y = y, fill = layercut, color = layercut), show.legend = FALSE) +
 
 		# Coastline
 		geom_path(data=coastsCoarse, aes(long, lat, group = group), color='black') +
