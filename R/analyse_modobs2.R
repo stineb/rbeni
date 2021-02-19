@@ -167,7 +167,8 @@ analyse_modobs2 <- function(
       ggplot2::ggplot(aes(x=mod, y=obs)) +
       geom_hex(bins = 100) +
       scale_fill_gradientn(
-        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5)) +
+        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5), 
+        trans = "log") +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
       # xlim(0,NA) +
