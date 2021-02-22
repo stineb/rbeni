@@ -19,6 +19,12 @@
 #' @param colorscale Either function that returns a set of colors or a vector of color names from which to interpolate.
 #' Defaults to \code{virids::viridis}.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
+#' @param hillshade A logical specifying whether a hillshade layer should be added. Defaults to \code{FALSE}.
+#' @param rivers A logical specifying whether to display rivers (the \code{ne_50m_rivers_lake_centerlines} layer from NaturalEarth.). Defaults to \code{FALSE}.
+#' @param lakes A logical specifying whether to display rivers (the \code{ne_50m_lakes} layer from NaturalEarth). Defaults to \code{FALSE}.
+#' @param coast A logical specifying whether to display coastlines (the \code{ne_50m_coastline} layer from NaturalEarth). Defaults to \code{TRUE}.
+#' @param make_discrete A logical scpecifying whether data layer is to be made discrete for plotting with colors
+#' of discrete bins. Defaults to \code{TRUE}.
 #' @param combine A boolean specifying whether the map and the colorscale should be combined using cowplot.
 #' Defaults to \code{TRUE}. If \code{FALSE}, a list of elements are retruned, where elements are the ggplot2 plot object
 #' and the coloscale object returned by the call to \link{plot_discrete_cbar}.
@@ -30,6 +36,7 @@
 #'
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), colorscale = viridis::viridis, do_reproj = FALSE,
+                      hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
@@ -37,21 +44,16 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   library(sf)
   library(ggplot2)
   library(rgdal)
+  library(raster)
 
   ## following https://downwithtime.wordpress.com/2013/12/04/naturalearthdata-and-r-in-ggplot2/
-  
+
   ## read geo data
-  if (!exists("raster_shade")) raster_shade <- raster::stack('~/data/naturalearth/SR_50M/SR_50M.tif')
-  if (!exists("lakes50")) lakes50 <- readOGR('/private/var/folders/50/6vwrc_t54pv4n9vty5dgt4fw0000gn/T/Rtmp3qVihn/ne_50m_lakes.shp', 'ne_50m_lakes')
-  if (!exists("rivers50")) rivers50 <- readOGR('/private/var/folders/50/6vwrc_t54pv4n9vty5dgt4fw0000gn/T/Rtmp3qVihn/ne_50m_rivers_lake_centerlines.shp', 'ne_50m_rivers_lake_centerlines')
-  if (!exists("coast50")) coast50 <- readOGR('/private/var/folders/50/6vwrc_t54pv4n9vty5dgt4fw0000gn/T/Rtmp3qVihn/ne_50m_coastline.shp', 'ne_50m_coastline')
-  
-  ## convert the hillshade layer to a data frame
-  df_hs <- data.frame(
-    xyFromCell(raster_shade_crop, 1:ncell(raster_shade_crop)),
-    getValues(raster_shade_crop/255)) %>% 
-    as_tibble()
-  
+  if (!exists("raster_shade") && hillshade) raster_shade <- raster::stack('~/data/naturalearth/SR_50M/SR_50M.tif')
+  if (!exists("lakes50") && lakes) lakes50 <- readOGR('~/data/naturalearth/ne_50m_lakes/ne_50m_lakes.shp', 'ne_50m_lakes')
+  if (!exists("rivers50") && rivers) rivers50 <- readOGR('~/data/naturalearth/ne_50m_rivers_lake_centerlines/ne_50m_rivers_lake_centerlines.shp', 'ne_50m_rivers_lake_centerlines')
+  if (!exists("coast50") && coast) coast50 <- readOGR('~/data/naturalearth/ne_50m_coastline/ne_50m_coastline.shp', 'ne_50m_coastline')
+
 	##---------------------------------------------
 	## interpret object
 	##---------------------------------------------
@@ -149,11 +151,11 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  }
 	}
 
-	## reduce and rename	
-	df <- df %>% 
+	## reduce and rename
+	df <- df %>%
 	  dplyr::select(x, y, !!varnam) %>%
 	  setNames(c("x", "y", "layer"))
-	  
+
 	##---------------------------------------------
 	## Bin data
 	##---------------------------------------------
@@ -183,26 +185,37 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	nbin <- length(breaks) - 1
 
 	## bin data
-	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
+	if (make_discrete){
+	  df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
+	} else {
+	  df$layercut <- df$layer
+	}
 
 	# # remove symbols from category-strings to make them nicer in the legend
 	# df$layercut <- gsub("\\(|\\]", "", df$layercut)
 	# df$layercut <- gsub("\\,", " - ", df$layercut)
-	
+
 	##---------------------------------------------
 	## crop
 	##---------------------------------------------
 	domain <- c(lonmin, lonmax, latmin, latmax)
-	
-	lakes_crop <- mycrop(lakes50, domain)
-	river_crop <- mycrop(rivers50, domain)
-	coast_crop <- mycrop(coast50, domain)
-	raster_shade_crop <- crop(raster_shade, y=extent(domain))
-	
-	df <- df %>% 
+
+	if (lakes) lakes_crop <- mycrop(lakes50, domain)
+	if (rivers) river_crop <- mycrop(rivers50, domain)
+	if (coast) coast_crop <- mycrop(coast50, domain)
+	if (hillshade) raster_shade_crop <- crop(raster_shade, y=extent(domain))
+
+	df <- df %>%
 	  dplyr::filter(x > domain[1] & x < domain[2] & y > domain[3] & y < domain[4])
-	
-	
+
+	## convert the hillshade layer to a data frame
+	if (hillshade){
+	  df_hs <- data.frame(
+	    xyFromCell(raster_shade_crop, 1:ncell(raster_shade_crop)),
+	    getValues(raster_shade_crop/255)) %>%
+	    as_tibble()
+	}
+
 	##---------------------------------------------
 	## Create color scale
 	##---------------------------------------------
@@ -263,10 +276,10 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	# lat.short  <- seq(latmin, latmax, dlatfine)
 	# lon.labels <- seq(lonmin, lonmax, dloncoarse)
 	# lon.short  <- seq(lonmin, lonmax, dlonfine)
-	# 
+	#
 	# # a <- sapply( lat.labels, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
 	# # b <- sapply( lon.labels, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)})
-	# 
+	#
 	# a <- sapply( lat.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
 	# b <- sapply( lon.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
 
@@ -274,24 +287,41 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	## Create ggplot object
 	##---------------------------------------------
 	ggmap <- ggplot() +
-	  
+
 	  ## main raster layer
-	  geom_tile(data = df_cwdx, aes(x = x, y = y, fill = layercut, color = layercut), show.legend = FALSE) +
-	  
-	  ## hillshade layer
-	  geom_tile(data = df_hs, aes(x = x, y = y, alpha = SR_50M), show.legend = FALSE) +
-	  scale_alpha(range=c(1, 0)) +
-	  
-	  geom_polygon(data = lakes_crop, aes(x = long, y = lat, group = group), fill = "#ADD8E6") +  # '#ADD8E6'
-	  geom_path(data = river_crop, aes(x = long, y = lat, group = group), color = 'dodgerblue', size = 0.2) +
-	  geom_path(data = coast_crop, aes(x = long, y = lat, group = group), color = 'gray25') +
+	  geom_tile(data = df, aes(x = x, y = y, fill = layercut, color = layercut), show.legend = FALSE) +
+
 	  scale_x_continuous(expand=c(0,0)) +
 	  scale_y_continuous(expand=c(0,0)) +
-	  scale_fill_manual(values = viridis::cividis(10, direction = -1)) +
-	  scale_color_manual(values = viridis::cividis(10, direction = -1)) +
+	  scale_fill_manual(values=colorscale) +
+	  scale_color_manual(values=colorscale) +
 	  xlab('') + ylab('') +
 	  coord_sf()
 
+	## add coast layer
+	if (coast){
+	  ggmap <- ggmap +
+	    geom_path(data = coast_crop, aes(x = long, y = lat, group = group), color = 'gray25')
+	}
+
+	## add rivers layer
+	if (rivers){
+	  ggmap <- ggmap +
+	    geom_path(data = river_crop, aes(x = long, y = lat, group = group), color = 'dodgerblue', size = 0.2)
+	}
+
+	## add lakes layer
+	if (lakes){
+	  ggmap <- ggmap +
+	    geom_polygon(data = lakes_crop, aes(x = long, y = lat, group = group), fill = "#ADD8E6")
+	}
+
+	## add hillshade layer
+	if (hillshade){
+	  ggmap <- ggmap +
+	    geom_tile(data = df_hs, aes(x = x, y = y, alpha = SR_50M), show.legend = FALSE) +
+	    scale_alpha(range=c(1, 0))
+	}
 
 	gglegend <- plot_discrete_cbar(
 		breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
@@ -464,13 +494,13 @@ plot_discrete_cbar = function(
 }
 
 mycrop <- function(x, domain){
-  
+
   # domain should be a vector of four values: c(xmin, xmax, ymin, ymax)
   x@data$id <- rownames(x@data)
-  
-  fortify(x, region="id") %>% 
-    as_tibble() %>% 
-    dplyr::left_join(x@data, by = "id") %>% 
+
+  fortify(x, region="id") %>%
+    as_tibble() %>%
+    dplyr::left_join(x@data, by = "id") %>%
     dplyr::filter(long > domain[1] & long < domain[2] &
                     lat > domain[3] & lat < domain[4])
 }
