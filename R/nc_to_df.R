@@ -90,14 +90,14 @@ nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, 
   df <- df %>% 
     rename(!!varnam := myvar)
   
-  ## nest data per gridcell
-  if (hastime){
-    if (verbose) print("Nesting data ...")
-    df <- df %>%
-      dplyr::group_by(lon, lat) %>%
-      tidyr::nest()
-
-  }
+  # ## nest data per gridcell
+  # if (hastime){
+  #   if (verbose) print("Nesting data ...")
+  #   df <- df %>%
+  #     dplyr::group_by(lon, lat) %>%
+  #     tidyr::nest()
+  # 
+  # }
 
   # add lon and lat index
   if (do_get_ilon_ilat){

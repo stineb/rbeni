@@ -23,15 +23,15 @@
 #' to \code{TRUE}.
 #' @param plot_linmod A boolean specifying whether to display the fitted linear
 #' regression as a red line. Defaults to \code{TRUE}.
-#' @param label A boolean specifying whether points should be labelled using ggrepel. 
+#' @param label A boolean specifying whether points should be labelled using ggrepel.
 #' Defaults to \code{FALSE}. Only available for \code{type = "points}. Use argument
 #' \code{nlabels} to specify how many points should be labelled, starting with points
 #' that have the largest residuals from the linear regression fit.
 #' @param id A character string specifying the column name that identifies the points.
-#' The column's values must be of type integer and is used to label points in case of 
+#' The column's values must be of type integer and is used to label points in case of
 #' \code{label = TRUE}.
 #' @param nlabels An integer specifying how many points to be labelled, starting with points
-#' that have the largest residuals from the linear regression fit. Only available 
+#' that have the largest residuals from the linear regression fit. Only available
 #' for \code{type = "points}. Defaults to one.
 #'
 #' @export
@@ -72,14 +72,14 @@ analyse_modobs2 <- function(
       ungroup() %>%
       dplyr::select(mod=mod, obs=obs, id=!!id) %>%
       tidyr::drop_na(mod, obs)
-    
+
   } else {
     df <- df %>%
       as_tibble() %>%
       ungroup() %>%
       dplyr::select(mod=mod, obs=obs) %>%
       tidyr::drop_na(mod, obs)
-    
+
   }
 
   ## get linear regression (coefficients)
@@ -99,8 +99,10 @@ analyse_modobs2 <- function(
                        .estimate = dplyr::filter(., .metric=="mae") %>% dplyr::select(.estimate) %>% unlist() /
                          dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) )
-
+    dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "cor",         .estimator = "standard", .estimate = cor(df$mod, df$obs) ) ) %>% 
+    dplyr::bind_rows( tibble( .metric = "cor_test",    .estimator = "standard", .estimate = cor.test(df$mod, df$obs)$p.value ) )
+    
   rsq_val <- df_metrics %>% dplyr::filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   rmse_val <- df_metrics %>% dplyr::filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   mae_val <- df_metrics %>% dplyr::filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
@@ -165,7 +167,8 @@ analyse_modobs2 <- function(
       ggplot2::ggplot(aes(x=mod, y=obs)) +
       geom_hex(bins = 100) +
       scale_fill_gradientn(
-        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5)) +
+        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5), 
+        trans = "log") +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
       # xlim(0,NA) +
@@ -181,15 +184,15 @@ analyse_modobs2 <- function(
     }
 
   } else if (type=="points") {
-    
+
     if (label){
-      df <- df %>% 
-        dplyr::mutate(.res = mod - obs) %>% 
-        dplyr::mutate(.absres = abs(.res)) %>% 
-        dplyr::arrange(desc(.absres)) %>% 
-        dplyr::mutate(.rankres = 1:n()) %>% 
-        dplyr::mutate(.dolab = ifelse(.rankres <= nlabels, TRUE, FALSE)) 
-      
+      df <- df %>%
+        dplyr::mutate(.res = mod - obs) %>%
+        dplyr::mutate(.absres = abs(.res)) %>%
+        dplyr::arrange(desc(.absres)) %>%
+        dplyr::mutate(.rankres = 1:n()) %>%
+        dplyr::mutate(.dolab = ifelse(.rankres <= nlabels, TRUE, FALSE))
+
       ## points with labels
       library(ggrepel)
       gg <- df %>%
@@ -200,7 +203,7 @@ analyse_modobs2 <- function(
         geom_abline(intercept=0, slope=1, linetype="dotted") +
         theme_classic() +
         labs(x = mod, y = obs)
-      
+
     } else {
       ## points
       gg <- df %>%
@@ -209,7 +212,7 @@ analyse_modobs2 <- function(
         geom_abline(intercept=0, slope=1, linetype="dotted") +
         theme_classic() +
         labs(x = mod, y = obs)
-      
+
     }
 
 
@@ -222,16 +225,16 @@ analyse_modobs2 <- function(
 
   } else if (type=="density") {
 
-    ## points
+    ## density as raster
     gg <- df %>%
       ggplot(aes(x=mod, y=obs)) +
 
       stat_density_2d(
         geom = "raster", #the geometric object to display the data (in this case: rectangles)
         aes(fill = after_stat(density)), #using `density`, a variable calculated by the stat
-        contour = FALSE 
+        contour = FALSE
       ) +
-      
+
       scale_fill_gradientn(colours = colorRampPalette( c("white", "gray65", "navy", "red", "yellow"))(6),
                            guide = FALSE) +
 
