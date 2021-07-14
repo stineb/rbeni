@@ -126,7 +126,9 @@ analyse_modobs2 <- function(
 
   if (shortsubtitle){
     subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
-                          RMSE == .(rmse_lab) )
+                          # RMSE == .(rmse_lab)
+                          slope == .(slope_lab)
+                        )
   } else {
     subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
                           RMSE == .(rmse_lab) ~~
