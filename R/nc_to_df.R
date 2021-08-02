@@ -78,7 +78,9 @@ nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, 
 
   # add data variable as column
   df <- df %>%
-    dplyr::bind_cols(tibble(myvar = as.vector(nc$vars[[varnam]])))
+    dplyr::bind_cols(tibble(myvar = as.vector(nc$vars[[varnam]]))) %>%
+    mutate(lon=round(lon, digits = 5),
+           lat=round(lat, digits = 5))
 
   if (dropna){
     if (verbose) print("Dropping NAs ...")
@@ -86,17 +88,17 @@ nc_to_df <- function(obj, varnam, lon = NA, lat = NA, do_get_ilon_ilat = FALSE, 
       tidyr::drop_na(myvar)
   }
 
-  ## rename 
-  df <- df %>% 
+  ## rename
+  df <- df %>%
     rename(!!varnam := myvar)
-  
+
   # ## nest data per gridcell
   # if (hastime){
   #   if (verbose) print("Nesting data ...")
   #   df <- df %>%
   #     dplyr::group_by(lon, lat) %>%
   #     tidyr::nest()
-  # 
+  #
   # }
 
   # add lon and lat index
