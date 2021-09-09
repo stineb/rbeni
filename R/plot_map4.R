@@ -315,7 +315,16 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  scale_fill_manual(values = colorscale) +
 	  scale_color_manual(values = colorscale) +
 	  xlab('') + ylab('') +
-	  coord_sf(expand = FALSE)
+	  coord_sf(expand = FALSE) +
+	  
+	  theme_bw() +
+	  theme(axis.ticks.y.right = element_line(),
+	        axis.ticks.x.top = element_line(),
+	        panel.grid = element_blank())
+	  
+	  # theme(panel.background = element_rect(fill = "white", colour = "grey50"),
+	  #       axis.line.x.top = element_line(),
+	  #       axis.line.y.right = element_line())
 
 	  # scale_x_continuous(labels = lon_labels, breaks = lon_breaks) +
 	  # scale_y_continuous(labels = lat_labels, breaks = lat_breaks)
