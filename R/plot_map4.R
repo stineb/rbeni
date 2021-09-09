@@ -369,7 +369,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	gglegend <- plot_discrete_cbar(
 		breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
 		colors           = colorscale,
-		# legend_title     = legend_title,
+		legend_title     = legend_title,
 		legend_direction = legend_direction,
 		...
     )

@@ -50,6 +50,7 @@ nclist_to_df <- function(nclist, outdir, fileprefix, varnam, ilon = NA,
       dplyr::pull(value) %>%
       stringr::str_remove("days since ") %>%
       stringr::str_remove(" 00:00:00") %>%
+      stringr::str_remove(" 0:0:0") %>%
       lubridate::ymd()
   } else {
     basedate <- NA
@@ -106,6 +107,7 @@ nclist_to_df_byilon <- function(nclist, ilon, outdir, fileprefix, varnam, lonnam
         dplyr::pull(value) %>%
         stringr::str_remove("days since ") %>%
         stringr::str_remove(" 00:00:00") %>%
+        stringr::str_remove(" 0:0:0") %>%
         lubridate::ymd()
     }
 
