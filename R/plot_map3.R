@@ -170,6 +170,16 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	## update
 	nbin <- length(breaks) - 1
+	
+	## add dummy rows to make sure values in layer span the entire range
+	df <- df %>% 
+	  bind_rows(
+	    tibble(
+	      x = NA,
+	      y = NA,
+	      layer = breaks[1:(length(breaks)-1)] + 0.5 * (breaks[2]-breaks[1])
+	    )
+	  )
 
 	## bin data
 	df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
@@ -247,6 +257,7 @@ plot_map3 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	a <- sapply( lat.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
 	b <- sapply( lon.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
 	
+
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
