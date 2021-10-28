@@ -9,7 +9,7 @@
 #' @return A named vector of characters specifying the hex codes of the colors
 #' @export
 #'
-myjcolors <- function(ncolors){
+myjcolors <- function(ncolors = NA){
 
   jcols <- jcolors::jcolors("default")
 
@@ -17,6 +17,15 @@ myjcolors <- function(ncolors){
   out <- c(jcols, gplots::col2hex("darkgreen"), gplots::col2hex("navyblue"), gplots::col2hex("darkgoldenrod"), gplots::col2hex("orchid") )
   names(out) <- c(names(jcols), "darkgreen", "navyblue", "darkgoldenrod", "orchid")
 
-  out <- out[1:ncolors]
+  if (!is.na(ncolors)){
+    if (ncolors > 9){
+      ## interpolate
+      out  <- colorRampPalette( out )( ncolors )
+
+    } else if (ncolors < 9){
+      out <- out[1:ncolors]
+    }
+  }
+
   return(out)
 }

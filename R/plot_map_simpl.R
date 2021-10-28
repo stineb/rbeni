@@ -13,10 +13,13 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 
 	library(rworldmap)
   library(ggplot2)
+  library(rnaturalearth)
+  library(sf)
 
-	data(coastsCoarse)
+	#data(coastsCoarse)
 
-	sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
+	#sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
+	sPDF <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
 
 	##---------------------------------------------
 	## map theme
@@ -64,15 +67,20 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 	gg <- ggplot() +
 
 		# background countries
-	  geom_polygon(data=sPDF, aes(long, lat, group=group), color="black", fill='grey75') +
+	  #geom_polygon(data=sPDF, aes(long, lat, group=group), color="black", fill='grey75') +
+	  geom_sf(data = sPDF, color="black", fill='grey75') +
+	  # coord_sf(
+	  #   ylim = c(-60, 90)
+	  # ) +
 
-		# Coastline
-		geom_path(data=coastsCoarse, aes(long, lat, group=group), color='black') +
+    scale_x_continuous(expand = c(0,0), limits = c(lonmin,lonmax)) +
+    scale_y_continuous(expand = c(0,0), limits = c(latmin,latmax)) +
+	  labs( x = "", y = "") +
 
-    scale_x_continuous(expand = c(0,0), limits = c(lonmin,lonmax), breaks = lon.labels, labels = b) +
-    scale_y_continuous(expand = c(0,0), limits = c(latmin,latmax),   breaks = lat.labels, labels = a) +
-	  labs( x = "", y = "")
+	  theme_bw() +
+	  theme(axis.ticks.y.right = element_line(),
+	        axis.ticks.x.top = element_line(),
+	        panel.grid = element_blank())
 
   return(gg)
 }
-

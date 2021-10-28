@@ -4,7 +4,7 @@
 \alias{myjcolors}
 \title{Colors for a nice palette}
 \usage{
-myjcolors(ncolors)
+myjcolors(ncolors = NA)
 }
 \arguments{
 \item{ncolors}{An integer specifying the number of colors to return.
