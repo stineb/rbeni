@@ -24,8 +24,8 @@
 #' @param rivers A logical specifying whether to display rivers (the \code{ne_50m_rivers_lake_centerlines} layer from NaturalEarth.). Defaults to \code{FALSE}.
 #' @param lakes A logical specifying whether to display rivers (the \code{ne_50m_lakes} layer from NaturalEarth). Defaults to \code{FALSE}.
 #' @param coast A logical specifying whether to display coastlines (the \code{ne_50m_coastline} layer from NaturalEarth). Defaults to \code{TRUE}.
-#' @param scale A character string specifying the scale of geo layers (coast, rivers, lakes). One of \code{"low", "medium", "high"}. 
-#' NaturalEarth layers for 110, 50, 10 m are used for low, medium, and high resolution (scale) layers, respectively. Defaults to \code{"low"}.
+#' @param scale A character string specifying the scale of geo layers (coast, rivers, lakes). One of \code{"small", "medium", "large"}.
+#' NaturalEarth layers for 110, 50, 10 m are used for low, medium, and high resolution (scale) layers, respectively. Defaults to \code{"small"}.
 #' @param countries A logical specifying whether to display country borders (the \code{ne_50m_admin_0_countries} layer from NaturalEarth). Defaults to \code{FALSE}.
 #' @param states A logical specifying whether to display sub-country administrative borders (e.g. US states) (the \code{ne_50m_admin_1_states_provinces} layer from NaturalEarth). Defaults to \code{FALSE}.
 #' @param make_discrete A logical scpecifying whether data layer is to be made discrete for plotting with colors
@@ -40,10 +40,10 @@
 #' @export
 #'
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
-                      nbin = 10, legend_title = waiver(), legend_direction = "vertical", 
+                      nbin = 10, legend_title = waiver(), legend_direction = "vertical",
                       colorscale = viridis::viridis, do_reproj = FALSE,
-                      hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE, 
-                      states = FALSE, scale = "low", make_discrete = TRUE,
+                      hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE,
+                      states = FALSE, scale = "small", make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
@@ -60,9 +60,19 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
   if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
   if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
-  if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
-	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
-	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+#   if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
+# 	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
+# 	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+
+  layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
+  layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
+  layer_states  <- rnaturalearth::ne_states(   scale = scale, returnclass = "sf")
+
+  # filn <- paste0("~/data/naturalearth/SR_50M/SR_50M.tif")
+  # if (!file.exists(filn)){
+  #   ne_download(scale = scale, type = "")
+  # }
+
 
 	##---------------------------------------------
 	## interpret object
@@ -193,9 +203,9 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	## update
 	nbin <- length(breaks) - 1
-	
+
 	## add dummy rows to make sure values in layer span the entire range
-	df <- df %>% 
+	df <- df %>%
 	  bind_rows(
 	    tibble(
 	      x = NA,
@@ -305,13 +315,13 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	# a <- sapply(seq(-180, 180, by = 60), function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
 	lat_breaks <- seq(-90, 90, by = 30)
 	lon_breaks <- seq(-180, 180, by = 60)
-	
+
 	# lat_labels <- sapply( lat_breaks, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
 	# lon_labels <- sapply( lon_breaks, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)} )
 
 	lat_labels <- sapply( lat_breaks, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
 	lon_labels <- sapply( lon_breaks, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
-	
+
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
@@ -319,26 +329,26 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	  ## main raster layer
 	  geom_tile(data = df, aes(x = x, y = y, fill = layercut, color = layercut), show.legend = FALSE) +
-	  
+
 	  # scale_x_continuous(expand=c(0,0)) +
 	  # scale_y_continuous(expand=c(0,0)) +
 	  scale_fill_manual(values = colorscale) +
 	  scale_color_manual(values = colorscale) +
 	  xlab('') + ylab('') +
 	  coord_sf(expand = FALSE) +
-	  
+
 	  theme_bw() +
 	  theme(axis.ticks.y.right = element_line(),
 	        axis.ticks.x.top = element_line(),
 	        panel.grid = element_blank())
-	  
+
 	  # theme(panel.background = element_rect(fill = "white", colour = "grey50"),
 	  #       axis.line.x.top = element_line(),
 	  #       axis.line.y.right = element_line())
 
 	  # scale_x_continuous(labels = lon_labels, breaks = lon_breaks) +
 	  # scale_y_continuous(labels = lat_labels, breaks = lat_breaks)
-	  
+
 	## add coast layer
 	if (coast){
 	  ggmap <- ggmap +

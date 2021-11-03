@@ -17,6 +17,7 @@ analyse_modobs2(
   shortsubtitle = FALSE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
+  plot_legend = TRUE,
   label = FALSE,
   id = NULL,
   nlabels = 1,
