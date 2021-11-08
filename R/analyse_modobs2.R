@@ -23,6 +23,8 @@
 #' to \code{TRUE}.
 #' @param plot_linmod A boolean specifying whether to display the fitted linear
 #' regression as a red line. Defaults to \code{TRUE}.
+#' @param plot_legend A boolean specifying whether to display a legend for the colors
+#' Defaults to \code{TRUE} if \code{type %in% c("heat", "hex", "density")}.
 #' @param label A boolean specifying whether points should be labelled using ggrepel.
 #' Defaults to \code{FALSE}. Only available for \code{type = "points}. Use argument
 #' \code{nlabels} to specify how many points should be labelled, starting with points
@@ -51,6 +53,7 @@ analyse_modobs2 <- function(
   shortsubtitle = FALSE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
+  plot_legend = TRUE,
   label       = FALSE,
   id          = NULL,
   nlabels     = 1,
@@ -100,9 +103,9 @@ analyse_modobs2 <- function(
                          dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
     dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "cor",         .estimator = "standard", .estimate = cor(df$mod, df$obs) ) ) %>% 
+    dplyr::bind_rows( tibble( .metric = "cor",         .estimator = "standard", .estimate = cor(df$mod, df$obs) ) ) %>%
     dplyr::bind_rows( tibble( .metric = "cor_test",    .estimator = "standard", .estimate = cor.test(df$mod, df$obs)$p.value ) )
-    
+
   rsq_val <- df_metrics %>% dplyr::filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   rmse_val <- df_metrics %>% dplyr::filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   mae_val <- df_metrics %>% dplyr::filter(.metric=="mae") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
@@ -157,6 +160,7 @@ analyse_modobs2 <- function(
 
     if (plot_linmod) gg <- gg + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
     if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
+    if (!plot_legend) gg <- gg + theme(legend.position = "none")
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
@@ -169,7 +173,7 @@ analyse_modobs2 <- function(
       ggplot2::ggplot(aes(x=mod, y=obs)) +
       geom_hex(bins = 100) +
       scale_fill_gradientn(
-        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5), 
+        colours = colorRampPalette( c("gray65", "navy", "red", "yellow"))(5),
         trans = "log") +
       geom_abline(intercept=0, slope=1, linetype="dotted") +
       # coord_fixed() +
@@ -180,12 +184,13 @@ analyse_modobs2 <- function(
 
     if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
     if (plot_linmod) gg <- gg + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
+    if (!plot_legend) gg <- gg + theme(legend.position = "none")
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
     }
 
-  } else if (type=="points") {
+  } else if (type=="points"){
 
     if (label){
       df <- df %>%
@@ -225,7 +230,7 @@ analyse_modobs2 <- function(
       ggsave(filnam, width=5, height=5)
     }
 
-  } else if (type=="density") {
+  } else if (type=="density"){
 
     ## density as raster
     gg <- df %>%
@@ -249,6 +254,7 @@ analyse_modobs2 <- function(
 
     if (plot_subtitle) gg <- gg + labs(subtitle = subtitle)
     if (plot_linmod) gg <- gg + geom_smooth(method='lm', color="red", size=0.5, se=FALSE)
+    if (!plot_legend) gg <- gg + theme(legend.position = "none")
 
     if (!identical(filnam, NA)) {
       ggsave(filnam, width=5, height=5)
