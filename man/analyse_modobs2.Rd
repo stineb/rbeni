@@ -54,8 +54,12 @@ to \code{TRUE}.}
 \item{plot_linmod}{A boolean specifying whether to display the fitted linear
 regression as a red line. Defaults to \code{TRUE}.}
 
+\item{plot_legend}{A boolean specifying whether to display a legend for the colors.
+Defaults to \code{TRUE} if \code{type} is one of  \code{"heat"},  \code{"hex"}, or
+\code{"density"}.}
+
 \item{label}{A boolean specifying whether points should be labelled using ggrepel.
-Defaults to \code{FALSE}. Only available for \code{type = "points}. Use argument
+Defaults to \code{FALSE}. Only available for \code{type == "points"}. Use argument
 \code{nlabels} to specify how many points should be labelled, starting with points
 that have the largest residuals from the linear regression fit.}
 
@@ -65,7 +69,7 @@ The column's values must be of type integer and is used to label points in case 
 
 \item{nlabels}{An integer specifying how many points to be labelled, starting with points
 that have the largest residuals from the linear regression fit. Only available
-for \code{type = "points}. Defaults to one.}
+for \code{type == "points"}. Defaults to one.}
 }
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled
