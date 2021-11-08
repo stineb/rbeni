@@ -18,8 +18,8 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 
 	#data(coastsCoarse)
 
-	#sPDF <- getMap()[getMap()$ADMIN!='Antarctica',]
-	sPDF <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+	#countries <- getMap()[getMap()$ADMIN!='Antarctica',]
+	countries <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
 
 	##---------------------------------------------
 	## map theme
@@ -67,8 +67,8 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 	gg <- ggplot() +
 
 		# background countries
-	  #geom_polygon(data=sPDF, aes(long, lat, group=group), color="black", fill='grey75') +
-	  geom_sf(data = sPDF, color="black", fill='grey75') +
+	  #geom_polygon(data=countries, aes(long, lat, group=group), color="black", fill='grey75') +
+	  geom_sf(data = countries, color="black", fill='grey75', size = 0.1) +
 	  # coord_sf(
 	  #   ylim = c(-60, 90)
 	  # ) +

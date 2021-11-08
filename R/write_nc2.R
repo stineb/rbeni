@@ -66,7 +66,7 @@ write_nc2 <- function(obj,
                       ){
 
   ## If 'var' is a rbeni-nc element, then no additional info about dimensions must be provided
-  if (is.list(obj)){
+  if (class(obj) == "list"){
 
     if (is.element("vars", ls(obj)) && is.element("lat", ls(obj)) && is.element("lon", ls(obj))){
 
