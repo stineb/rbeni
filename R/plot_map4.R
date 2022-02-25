@@ -43,7 +43,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
                       nbin = 10, legend_title = waiver(), legend_direction = "vertical",
                       colorscale = viridis::viridis, do_reproj = FALSE,
                       hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE,
-                      states = FALSE, scale = "small", make_discrete = TRUE,
+                      states = FALSE, scale = "low", make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
@@ -60,13 +60,13 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
   if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
   if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
-#   if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
-# 	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
-# 	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+  if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
+	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
+	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
 
-  layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
-  layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
-  layer_states  <- rnaturalearth::ne_states(   scale = scale, returnclass = "sf")
+  # layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
+  # layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
+  # layer_states  <- rnaturalearth::ne_states(returnclass = "sf")
 
   # filn <- paste0("~/data/naturalearth/SR_50M/SR_50M.tif")
   # if (!file.exists(filn)){
