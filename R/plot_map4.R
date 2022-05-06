@@ -257,7 +257,11 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	} else if (class(colorscale)=="character"){
 
-	  colorscale <- colorRampPalette( colorscale )( nbin )
+	  if (colorscale == "batlowK"){
+	    colorscale <- scico::scico(nbin, palette = colorscale)
+	  } else {
+	    colorscale <- colorRampPalette( colorscale )( nbin )
+	  }
 
 	} else if (class(colorscale)=="palette"){
 
