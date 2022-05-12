@@ -257,8 +257,8 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	} else if (class(colorscale)=="character"){
 
-	  if (colorscale == "batlowK"){
-	    colorscale <- scico::scico(nbin, palette = colorscale)
+	  if (colorscale %in% c("batlowK", "turku", "tokyo")){
+	    colorscale <- scico::scico(nbin, palette = colorscale, direction = -1)
 	  } else {
 	    colorscale <- colorRampPalette( colorscale )( nbin )
 	  }

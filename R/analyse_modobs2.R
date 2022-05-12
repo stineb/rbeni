@@ -102,10 +102,10 @@ analyse_modobs2 <- function(
     dplyr::bind_rows( tibble( .metric = "pmae",    .estimator = "standard",
                        .estimate = dplyr::filter(., .metric=="mae") %>% dplyr::select(.estimate) %>% unlist() /
                          dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "cor",         .estimator = "standard", .estimate = cor(df$mod, df$obs) ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "cor_test",    .estimator = "standard", .estimate = cor.test(df$mod, df$obs)$p.value ) )
+    dplyr::bind_rows( tibble( .metric = "bias",  .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "pbias", .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "cor",   .estimator = "standard", .estimate = cor(df$mod, df$obs, method = "pearson") ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "cor_p", .estimator = "standard", .estimate = cor.test(df$mod, df$obs, method = "pearson")$p.value ) )
 
   rsq_val <- df_metrics %>% dplyr::filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   rmse_val <- df_metrics %>% dplyr::filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
@@ -113,6 +113,8 @@ analyse_modobs2 <- function(
   bias_val <- df_metrics %>% dplyr::filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   slope_val <- df_metrics %>% dplyr::filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   n_val <- df_metrics %>% dplyr::filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  cor_val <- df_metrics %>% dplyr::filter(.metric=="cor") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  cor_p_val <- df_metrics %>% dplyr::filter(.metric=="cor_p") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
 
   if (relative){
     rmse_val <- rmse_val / mean(df$obs, na.rm = TRUE)
@@ -125,13 +127,17 @@ analyse_modobs2 <- function(
   bias_lab <- format( bias_val, digits = 3 )
   slope_lab <- format( slope_val, digits = 3 )
   n_lab <- format( n_val, digits = 3 )
+  cor_lab <- format( cor_val, digits = 3 )
+  cor_p_lab <- format( cor_p_val, digits = 3 )
 
   results <- tibble( rsq = rsq_val, rmse = rmse_val, mae = mae_val, bias = bias_val, slope = slope_val, n = n_val )
 
   if (shortsubtitle){
-    subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
+    subtitle <- bquote(   italic(r) == .(cor_lab) ~~
+                          # italic(R)^2 == .(rsq_lab) ~~
                           # RMSE == .(rmse_lab)
-                          slope == .(slope_lab)
+                          # slope == .(slope_lab)
+                          italic(p) == .(cor_p_lab)
                         )
   } else {
     subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
