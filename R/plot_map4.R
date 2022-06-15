@@ -19,6 +19,7 @@
 #' @param legend_direction Either \code{"vertical"} (default) or \code{"horizontal"}.
 #' @param colorscale Either function that returns a set of colors or a vector of color names from which to interpolate.
 #' Defaults to \code{virids::viridis}.
+#' @param invert One of 1 or -1, specifying the direction of the color scale. Defaults to -1.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
 #' @param hillshade A logical specifying whether a hillshade layer should be added. Defaults to \code{FALSE}.
 #' @param rivers A logical specifying whether to display rivers (the \code{ne_50m_rivers_lake_centerlines} layer from NaturalEarth.). Defaults to \code{FALSE}.
@@ -41,7 +42,7 @@
 #'
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), legend_direction = "vertical",
-                      colorscale = viridis::viridis, do_reproj = FALSE,
+                      colorscale = viridis::viridis, invert = -1, do_reproj = FALSE,
                       hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE,
                       states = FALSE, scale = "low", make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
@@ -253,12 +254,12 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	##---------------------------------------------
 	if (class(colorscale)=="function"){
 
-	  colorscale <- colorscale(nbin, direction = -1)
+	  colorscale <- colorscale(nbin, direction = invert)
 
 	} else if (class(colorscale)=="character"){
 
-	  if (colorscale %in% c("batlowK", "turku", "tokyo")){
-	    colorscale <- scico::scico(nbin, palette = colorscale, direction = -1)
+	  if (colorscale %in% c("batlowK", "turku", "tokyo", "batlow")){
+	    colorscale <- scico::scico(nbin, palette = colorscale, direction = invert)
 	  } else {
 	    colorscale <- colorRampPalette( colorscale )( nbin )
 	  }
