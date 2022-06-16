@@ -16,10 +16,31 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
   library(rnaturalearth)
   library(sf)
 
-	#data(coastsCoarse)
+  # download global coastline data from naturalearth
+  countries <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
 
-	#countries <- getMap()[getMap()$ADMIN!='Antarctica',]
-	countries <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+  ##---------------------------------------------
+  ## Projection
+  ##---------------------------------------------
+  # set coordinate systems
+  robinson <- CRS("+proj=robin +over")
+
+  # create a bounding box for the robinson projection
+  bb <- sf::st_union(sf::st_make_grid(
+    st_bbox(c(xmin = -180,
+              xmax = 180,
+              ymax = 90,
+              ymin = -90),
+            crs = st_crs(4326)),
+    n = 100))
+  bb_robinson <- st_transform(bb, as.character(robinson))
+
+	# clip countries to bounding box
+	# and transform
+	countries <- countries %>%
+	  st_buffer(0) %>%
+	  st_intersection(st_union(bb)) %>%
+	  st_transform(robinson)
 
 	##---------------------------------------------
 	## map theme
@@ -43,44 +64,38 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 	    # plot.margin = unit( c(0, 0, 0, 5) , "mm")
 	  )
 
-	# define labels
-	lat.labels <- seq(-90, 90, 30)
-	lat.short  <- seq(-90, 90, 10)
-	lon.labels <- seq(-180, 180, 60)
-	lon.short  <- seq(-180, 180, 10)
-
-	# a <- sapply( lat.labels, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
-	# b <- sapply( lon.labels, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)})
-
-	# a <- sapply( lat.labels, function(x) if (x>0) {substitute(paste(nn, degree), list(nn=x))} else if (x==0) {substitute(paste(nn, degree), list(nn=x))} else {substitute(paste(nn, degree), list(nn=x))} )
-	# b <- sapply( lon.labels, function(x) if (x>0) {substitute(paste(nn, degree), list(nn=x))} else if (x==0) {substitute(paste(nn, degree), list(nn=x))} else {substitute(paste(nn, degree), list(nn=x))} )
-
-	# a <- parse(text = paste(lat.labels, "*degree ~ N", sep = ""))
-	# b <- parse(text = paste(lon.labels, "*degree ~ E", sep = ""))
-
-	a <- sapply( lat.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
-	b <- sapply( lon.labels, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
-
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
 	gg <- ggplot() +
 
 		# background countries
-	  #geom_polygon(data=countries, aes(long, lat, group=group), color="black", fill='grey75') +
-	  geom_sf(data = countries, color="black", fill='grey75', size = 0.1) +
+	  # geom_sf(data = countries, color="black", fill='grey75', size = 0.1) +
+	  geom_sf(data = countries,
+	          colour = 'black',
+	          fill = 'grey75',  # NA for empty
+	          linetype = 'solid',
+	          size = 0.1) +
+
+	  # bounding box
+	  geom_sf(data = bb_robinson,
+	          colour = 'black',
+	          linetype = 'solid',
+	          fill = NA,
+	          size = 0.1) +
+
 	  # coord_sf(
 	  #   ylim = c(-60, 90)
 	  # ) +
 
-    scale_x_continuous(expand = c(0,0), limits = c(lonmin,lonmax)) +
-    scale_y_continuous(expand = c(0,0), limits = c(latmin,latmax)) +
-	  labs( x = "", y = "") +
+#     scale_x_continuous(expand = c(0, 0), limits = c(lonmin, lonmax)) +
+#     scale_y_continuous(expand = c(0, 0), limits = c(latmin, latmax)) +
+# 	  labs( x = "", y = "") +
 
-	  theme_bw() +
-	  theme(axis.ticks.y.right = element_line(),
-	        axis.ticks.x.top = element_line(),
-	        panel.grid = element_blank())
+	  theme_bw()
+	  # theme(axis.ticks.y.right = element_line(),
+	  #       axis.ticks.x.top = element_line(),
+	  #       panel.grid = element_blank())
 
   return(gg)
 }

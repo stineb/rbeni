@@ -17,8 +17,11 @@
 #' the plot. Defaults to \code{NA} (no file is created).
 #' @param relative A logical specifying whether the relative RMSE and bias (after
 #' division by the mean) is to be showed in the subtitle labels.
-#' @param shortsubtitle A boolean specifying whether to display only R2, and in
-#' the subtitle metrics.
+#' @param shortsubtitle A boolean specifying whether to display a reduced set of metrics
+#' in the subtitle.
+#' @param rsquared A boolean specifying whether to display R-squared and the RMSE
+#' (if \code{TRUE}) or the r (Pearson's correlation coefficient) and the p (p-value of
+#' test of significance of correlation, if \code{TRUE}). Defaluts to \code{TRUE}.
 #' @param plot_subtitle A boolean specifying whether to display any metrics. Defaults
 #' to \code{TRUE}.
 #' @param plot_linmod A boolean specifying whether to display the fitted linear
@@ -52,6 +55,7 @@ analyse_modobs2 <- function(
   ylim       = NULL,
   use_factor = NULL,
   shortsubtitle = FALSE,
+  rsquared    = TRUE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
   plot_legend = TRUE,
@@ -102,10 +106,10 @@ analyse_modobs2 <- function(
     dplyr::bind_rows( tibble( .metric = "pmae",    .estimator = "standard",
                        .estimate = dplyr::filter(., .metric=="mae") %>% dplyr::select(.estimate) %>% unlist() /
                          dplyr::filter(., .metric=="mean_obs") %>% dplyr::select(.estimate) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "bias",        .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "pbias",       .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "cor",         .estimator = "standard", .estimate = cor(df$mod, df$obs) ) ) %>%
-    dplyr::bind_rows( tibble( .metric = "cor_test",    .estimator = "standard", .estimate = cor.test(df$mod, df$obs)$p.value ) )
+    dplyr::bind_rows( tibble( .metric = "bias",  .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs), na.rm=TRUE    )) %>% unlist() ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "pbias", .estimator = "standard", .estimate = dplyr::summarise(df, mean((mod-obs)/obs, na.rm=TRUE)) %>% unlist() ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "cor",   .estimator = "standard", .estimate = cor(df$mod, df$obs, method = "pearson") ) ) %>%
+    dplyr::bind_rows( tibble( .metric = "cor_p", .estimator = "standard", .estimate = cor.test(df$mod, df$obs, method = "pearson")$p.value ) )
 
   rsq_val <- df_metrics %>% dplyr::filter(.metric=="rsq") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   rmse_val <- df_metrics %>% dplyr::filter(.metric=="rmse") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
@@ -113,6 +117,8 @@ analyse_modobs2 <- function(
   bias_val <- df_metrics %>% dplyr::filter(.metric=="bias") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   slope_val <- df_metrics %>% dplyr::filter(.metric=="slope") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
   n_val <- df_metrics %>% dplyr::filter(.metric=="n") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  cor_val <- df_metrics %>% dplyr::filter(.metric=="cor") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
+  cor_p_val <- df_metrics %>% dplyr::filter(.metric=="cor_p") %>% dplyr::select(.estimate) %>% unlist() %>% unname()
 
   if (relative){
     rmse_val <- rmse_val / mean(df$obs, na.rm = TRUE)
@@ -125,14 +131,23 @@ analyse_modobs2 <- function(
   bias_lab <- format( bias_val, digits = 3 )
   slope_lab <- format( slope_val, digits = 3 )
   n_lab <- format( n_val, digits = 3 )
+  cor_lab <- format( cor_val, digits = 3 )
+  cor_p_lab <- format( cor_p_val, digits = 3 )
 
   results <- tibble( rsq = rsq_val, rmse = rmse_val, mae = mae_val, bias = bias_val, slope = slope_val, n = n_val )
 
   if (shortsubtitle){
-    subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
-                          # RMSE == .(rmse_lab)
-                          slope == .(slope_lab)
-                        )
+    if (rsquared){
+      subtitle <- bquote(
+        italic(R)^2 == .(rsq_lab) ~~
+        RMSE == .(rmse_lab)
+      )
+    } else {
+      subtitle <- bquote(
+        italic(r) == .(cor_lab) ~~
+        italic(p) == .(cor_p_lab)
+      )
+    }
   } else {
     subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
                           RMSE == .(rmse_lab) ~~

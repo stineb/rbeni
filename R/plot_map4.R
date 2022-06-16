@@ -19,6 +19,7 @@
 #' @param legend_direction Either \code{"vertical"} (default) or \code{"horizontal"}.
 #' @param colorscale Either function that returns a set of colors or a vector of color names from which to interpolate.
 #' Defaults to \code{virids::viridis}.
+#' @param invert One of 1 or -1, specifying the direction of the color scale. Defaults to -1.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
 #' @param hillshade A logical specifying whether a hillshade layer should be added. Defaults to \code{FALSE}.
 #' @param rivers A logical specifying whether to display rivers (the \code{ne_50m_rivers_lake_centerlines} layer from NaturalEarth.). Defaults to \code{FALSE}.
@@ -41,9 +42,9 @@
 #'
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), legend_direction = "vertical",
-                      colorscale = viridis::viridis, do_reproj = FALSE,
+                      colorscale = viridis::viridis, invert = -1, do_reproj = FALSE,
                       hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE,
-                      states = FALSE, scale = "small", make_discrete = TRUE,
+                      states = FALSE, scale = "low", make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
@@ -60,13 +61,13 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
   if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
   if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
-#   if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
-# 	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
-# 	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+  if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
+	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
+	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
 
-  layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
-  layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
-  # layer_states  <- rnaturalearth::ne_states(   scale = scale, returnclass = "sf")
+  # layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
+  # layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
+  # layer_states  <- rnaturalearth::ne_states(returnclass = "sf")
 
   # filn <- paste0("~/data/naturalearth/SR_50M/SR_50M.tif")
   # if (!file.exists(filn)){
@@ -253,11 +254,15 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	##---------------------------------------------
 	if (class(colorscale)=="function"){
 
-	  colorscale <- colorscale(nbin, direction = -1)
+	  colorscale <- colorscale(nbin, direction = invert)
 
 	} else if (class(colorscale)=="character"){
 
-	  colorscale <- colorRampPalette( colorscale )( nbin )
+	  if (colorscale %in% c("batlowK", "turku", "tokyo", "batlow")){
+	    colorscale <- scico::scico(nbin, palette = colorscale, direction = invert)
+	  } else {
+	    colorscale <- colorRampPalette( colorscale )( nbin )
+	  }
 
 	} else if (class(colorscale)=="palette"){
 
