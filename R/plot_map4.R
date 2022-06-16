@@ -66,7 +66,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
   layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
   layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
-  layer_states  <- rnaturalearth::ne_states(   scale = scale, returnclass = "sf")
+  # layer_states  <- rnaturalearth::ne_states(   scale = scale, returnclass = "sf")
 
   # filn <- paste0("~/data/naturalearth/SR_50M/SR_50M.tif")
   # if (!file.exists(filn)){
