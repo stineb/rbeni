@@ -80,6 +80,3 @@ for \code{type == "points"}. Defaults to one.}
 Calculates a set of performance statistics and optionally creates plots of modelled
 versus observed values.
 }
-\examples{
-
-}
