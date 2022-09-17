@@ -1,0 +1,88 @@
+---
+title: "Example NetCDF handling"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(rbeni)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Used for debugging
+```{r}
+nc_out <- read_nc_onefile("~/sofun_outputs/output_nc_global_sofun/global_ORG.2001.d.fapar.nc")
+nc_in <-  read_nc_onefile("~/sofun/input/global/fapar/fAPAR3g_v2_1982_2016_FILLED.nc")
+
+nc_out$vars$fapar[706, 315, 212]
+nc_in$vars$FAPAR_FILLED[706, 315, 235]
+
+nc_out$vars$fapar[,,212] %>% image()
+nc_in$vars$FAPAR_FILLED[,,235] %>% image()
+```
+
+
+
+
+
+## NetCDF handling
+
+### Reading from NetCDF 
+
+```{r}
+nc <- read_nc_onefile("~/sofun/input/global/fapar/fpar_MODIS-C006-MOD15A2_SUBSET.nc")
+
+# manipulate inside
+nc$time <- c(nc$time[1] - lubridate::days(31), nc$time)
+nc$vars$fpar <- abind::abind(nc$vars$fpar[,,1], nc$vars$fpar, along = 3)
+
+# rasta <- raster::brick("~/sofun/input/global/fapar/tmp.nc")
+# rasterVis::levelplot(rasta)
+```
+
+### Manipulate nc object
+
+```{r}
+nc_sub <- nc_selname(nc, "fpar")
+```
+
+
+### Writing NetCDF
+
+```{r}
+# raster::writeRaster(rasta, filename = "~/sofun/input/global/fapar/tmp2.nc", format = "CDF", overwrite = TRUE )
+# nc2 <- read_nc_onefile("~/sofun/input/global/fapar/tmp2.nc")
+# image(nc2$vars$Date[,,2])
+
+write_nc2(
+  nc_sub, 
+  varnam = "fpar", 
+  outfilnam = "~/sofun/input/global/fapar/fpar_MODIS-C006-MOD15A2_SUBSET_writtenbyR.nc", 
+  units_time = "days since 2000-01-01"
+  )
+print(nc_sub$vars$fpar[720, 148, 13])
+print(range(nc_sub$vars$fpar[,,13]))
+
+nc_test <- read_nc_onefile("~/sofun/input/global/fapar/fpar_MODIS-C006-MOD15A2_SUBSET_writtenbyR.nc")
+print(nc_test$vars$fpar[720,148,25])
+
+nc_test2 <- read_nc_onefile("~/sofun/input/global/fapar/fAPAR3g_v2_1982_2016_FILLED.nc")
+print(nc_test2$vars$fpar[717,105,241])
+
+
+nc_ccov <- read_nc_onefile("~/data/cru/ts_4.01/cru_ts4.01.1901.2016.cld.dat.nc")
+idx <- which(lubridate::year(nc_ccov$time)==2001 & lubridate::month(nc_ccov$time)==1)
+print(nc_ccov$vars$cld[720, 148, idx])
+print(range(nc_ccov$vars$cld[,,idx], na.rm=TRUE))
+```
+
+Test if it worked ok.
+```{r}
+nc_written <- read_nc_onefile("~/sofun/input/global/fapar/fpar.nc")
+image(nc_written$vars$fpar[,,2])
+```
+
+### Plotting a map
+
+```{r}
+image(nc$vars$fpar[,,2])
+```
