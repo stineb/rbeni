@@ -17,8 +17,11 @@
 #' the plot. Defaults to \code{NA} (no file is created).
 #' @param relative A logical specifying whether the relative RMSE and bias (after
 #' division by the mean) is to be showed in the subtitle labels.
-#' @param shortsubtitle A boolean specifying whether to display only R2, and in
-#' the subtitle metrics.
+#' @param shortsubtitle A boolean specifying whether to display a reduced set of metrics
+#' in the subtitle.
+#' @param rsquared A boolean specifying whether to display R-squared and the RMSE
+#' (if \code{TRUE}) or the r (Pearson's correlation coefficient) and the p (p-value of
+#' test of significance of correlation, if \code{TRUE}). Defaluts to \code{TRUE}.
 #' @param plot_subtitle A boolean specifying whether to display any metrics. Defaults
 #' to \code{TRUE}.
 #' @param plot_linmod A boolean specifying whether to display the fitted linear
@@ -52,6 +55,7 @@ analyse_modobs2 <- function(
   ylim       = NULL,
   use_factor = NULL,
   shortsubtitle = FALSE,
+  rsquared    = TRUE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
   plot_legend = TRUE,
@@ -133,12 +137,17 @@ analyse_modobs2 <- function(
   results <- tibble( rsq = rsq_val, rmse = rmse_val, mae = mae_val, bias = bias_val, slope = slope_val, n = n_val )
 
   if (shortsubtitle){
-    subtitle <- bquote(   italic(r) == .(cor_lab) ~~
-                          # italic(R)^2 == .(rsq_lab) ~~
-                          # RMSE == .(rmse_lab)
-                          # slope == .(slope_lab)
-                          italic(p) == .(cor_p_lab)
-                        )
+    if (rsquared){
+      subtitle <- bquote(
+        italic(R)^2 == .(rsq_lab) ~~
+        RMSE == .(rmse_lab)
+      )
+    } else {
+      subtitle <- bquote(
+        italic(r) == .(cor_lab) ~~
+        italic(p) == .(cor_p_lab)
+      )
+    }
   } else {
     subtitle <- bquote( italic(R)^2 == .(rsq_lab) ~~
                           RMSE == .(rmse_lab) ~~

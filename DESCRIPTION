@@ -8,7 +8,7 @@ Description: An eclectic collection of functions for Beni's daily life.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Imports: ncmeta, viridis, ggthemes, LSD, yardstick, ggplot2, RColorBrewer, rlang, dplyr, purrr, lubridate, tidyr, raster, lubridate, stringr, sp, rlang, readr
 URL: https://github.com/stineb/rbeni
 BugReports: https://github.com/stineb/rbeni/issues

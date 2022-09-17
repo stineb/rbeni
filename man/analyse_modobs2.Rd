@@ -15,6 +15,7 @@ analyse_modobs2(
   ylim = NULL,
   use_factor = NULL,
   shortsubtitle = FALSE,
+  rsquared = TRUE,
   plot_subtitle = TRUE,
   plot_linmod = TRUE,
   plot_legend = TRUE,
@@ -45,8 +46,12 @@ the plot. Defaults to \code{NA} (no file is created).}
 \item{relative}{A logical specifying whether the relative RMSE and bias (after
 division by the mean) is to be showed in the subtitle labels.}
 
-\item{shortsubtitle}{A boolean specifying whether to display only R2, and in
-the subtitle metrics.}
+\item{shortsubtitle}{A boolean specifying whether to display a reduced set of metrics
+in the subtitle.}
+
+\item{rsquared}{A boolean specifying whether to display R-squared and the RMSE
+(if \code{TRUE}) or the r (Pearson's correlation coefficient) and the p (p-value of
+test of significance of correlation, if \code{TRUE}). Defaluts to \code{TRUE}.}
 
 \item{plot_subtitle}{A boolean specifying whether to display any metrics. Defaults
 to \code{TRUE}.}
@@ -74,7 +79,4 @@ for \code{type == "points"}. Defaults to one.}
 \description{
 Calculates a set of performance statistics and optionally creates plots of modelled
 versus observed values.
-}
-\examples{
-
 }
