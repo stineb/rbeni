@@ -74,6 +74,7 @@ plot_discrete_cbar = function(
                         inherit.aes = FALSE,
                         fill = colors[1],
                         color=border_color)
+        d_breaks <- 2 * d_breaks
     }
     if (any(inf_breaks > 1)) { # Add > arrow for +Inf
         lastv = breaks[n_breaks]
@@ -88,6 +89,7 @@ plot_discrete_cbar = function(
                         inherit.aes = FALSE,
                         fill = colors[length(colors)],
                         color=border_color)
+        d_breaks <- 2 * d_breaks
     }
 
     if (legend_direction == "horizontal") {

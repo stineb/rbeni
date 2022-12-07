@@ -25,10 +25,12 @@
 #' @param rivers A logical specifying whether to display rivers (the \code{ne_50m_rivers_lake_centerlines} layer from NaturalEarth.). Defaults to \code{FALSE}.
 #' @param lakes A logical specifying whether to display rivers (the \code{ne_50m_lakes} layer from NaturalEarth). Defaults to \code{FALSE}.
 #' @param coast A logical specifying whether to display coastlines (the \code{ne_50m_coastline} layer from NaturalEarth). Defaults to \code{TRUE}.
-#' @param scale A character string specifying the scale of geo layers (coast, rivers, lakes). One of \code{"small", "medium", "large"}.
+#' @param ocean A logical specifying whether to display the ocean layer from NaturalEarth). Defaults to \code{FALSE}.
+#' @param scale An integer specifying the resolutuion of NaturalEarth layers (coast, rivers, lakes). One of \code{110, 50, 10}. Defaults to \code{110} (coarsest resolution).
 #' NaturalEarth layers for 110, 50, 10 m are used for low, medium, and high resolution (scale) layers, respectively. Defaults to \code{"small"}.
 #' @param countries A logical specifying whether to display country borders (the \code{ne_50m_admin_0_countries} layer from NaturalEarth). Defaults to \code{FALSE}.
 #' @param states A logical specifying whether to display sub-country administrative borders (e.g. US states) (the \code{ne_50m_admin_1_states_provinces} layer from NaturalEarth). Defaults to \code{FALSE}.
+#' @param dir_ne A character string specifying where to download Naturalearth layers. Once downloaded, they can be quickly loaded. Defaults to \code{"~/data/naturalearth/"}.
 #' @param make_discrete A logical scpecifying whether data layer is to be made discrete for plotting with colors
 #' of discrete bins. Defaults to \code{TRUE}.
 #' @param combine A boolean specifying whether the map and the colorscale should be combined using cowplot.
@@ -43,27 +45,28 @@
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), legend_direction = "vertical",
                       colorscale = viridis::viridis, invert = -1, do_reproj = FALSE,
-                      hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, countries = FALSE,
-                      states = FALSE, scale = "low", make_discrete = TRUE,
+                      hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, ocean = FALSE,
+                      countries = FALSE, dir_ne = "~/data/naturalearth/",
+                      states = FALSE, scale = 110, make_discrete = TRUE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
-  library(sp)
   library(sf)
   library(ggplot2)
   library(rgdal)
   library(raster)
 
-  ## following https://downwithtime.wordpress.com/2013/12/04/naturalearthdata-and-r-in-ggplot2/
+	## define domain object
+	domain <- c(xmin = lonmin, xmax = lonmax, ymin = latmin, ymax = latmax)
 
   ## read geo data
-  res <- ifelse(scale == "low", "110", ifelse(scale == "medium", "50", ifelse(scale == "high", "10", NA)))
-  if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
-  if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
-  if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
-  if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
-	if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
-	if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+  # res <- ifelse(scale == "low", "110", ifelse(scale == "medium", "50", ifelse(scale == "high", "10", NA)))
+  # if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
+  # if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
+  # if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
+  # if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
+	# if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
+	# if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
 
   # layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
   # layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
@@ -73,6 +76,114 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
   # if (!file.exists(filn)){
   #   ne_download(scale = scale, type = "")
   # }
+
+	## read 110 m resolution coastline from NaturalEarth data (is a shapefile)
+	layer_coast <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
+
+	## read 110 m resolution countries outline from NaturalEarth data (is a shapefile)
+	layer_countries <- ne_countries(scale = scale, returnclass = "sf")
+
+	# download oceans
+	if (ocean){
+		if (length(list.files(path = dir_ne,
+													pattern = paste0("ne_", as.character(scale), "m_ocean"))
+													) == 0){
+			layer_ocean <- rnaturalearth::ne_download(
+			  scale = scale,
+			  type = "ocean",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		} else {
+			layer_ocean <- rnaturalearth::ne_load(
+			  scale = scale,
+			  type = "ocean",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		}
+
+		## reduce to domain
+		# layer_ocean <- st_crop(layer_ocean, domain)
+	}
+
+	# download rivers
+	if (rivers){
+		if (length(list.files(path = dir_ne,
+													pattern = paste0("ne_", as.character(scale), "m_rivers_lake_centerlines"))
+													) == 0){
+			layer_rivers <- rnaturalearth::ne_download(
+			  scale = scale,
+			  type = "rivers_lake_centerlines",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		} else {
+			layer_rivers <- rnaturalearth::ne_load(
+			  scale = scale,
+			  type = "rivers_lake_centerlines",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		}
+
+		## reduce to domain
+		layer_rivers <- st_crop(layer_rivers, domain)
+	}
+
+	# download lakes
+	if (lakes){
+		if (length(list.files(path = dir_ne,
+													pattern = paste0("ne_", as.character(scale), "m_lakes"))
+													) == 0){
+			layer_lakes <- rnaturalearth::ne_download(
+			  scale = scale,
+			  type = "lakes",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		} else {
+			layer_lakes <- rnaturalearth::ne_load(
+			  scale = scale,
+			  type = "lakes",
+			  category = "physical",
+			  returnclass = "sf",
+			  destdir = dir_ne
+			  )
+		}
+
+		## reduce to domain
+		layer_lakes <- try(st_crop(layer_lakes, domain))
+	}
+
+	# download hillshade
+	if (hillshade){
+		if (length(list.files(path = dir_ne,
+													pattern = paste0("MSR_"))
+													) == 0){
+			scale_hillshade <- 50  # 110 doesn't seem to work
+			layer_hillshade <- rnaturalearth::ne_download(
+			  scale = scale_hillshade,
+			  type = paste0("MSR_", as.character(scale_hillshade), "M"),
+			  category = "raster",
+			  returnclass = "sf",
+			  destdir = dir_ne,
+			  load = FALSE
+			  )
+			raster_shade <- raster::stack(layer_hillshade)
+		} else {
+			scale_hillshade <- 50  # 110 doesn't seem to work
+			raster_shade <- raster::stack(paste0(dir_ne, "MSR_", as.character(scale_hillshade), "M/MSR_", as.character(scale_hillshade), "M.tif"))
+		}
+
+		## reduce to domain
+		raster_shade <- crop(raster_shade, y = extent(domain))
+	}
 
 
 	##---------------------------------------------
@@ -222,30 +333,14 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  df$layercut <- df$layer
 	}
 
-	# # remove symbols from category-strings to make them nicer in the legend
-	# df$layercut <- gsub("\\(|\\]", "", df$layercut)
-	# df$layercut <- gsub("\\,", " - ", df$layercut)
-
-	##---------------------------------------------
-	## crop
-	##---------------------------------------------
-	domain <- c(lonmin, lonmax, latmin, latmax)
-
-	if (lakes) lakes_crop <- mycrop(layer_lakes, domain)
-	if (rivers) river_crop <- mycrop(layer_rivers, domain)
-	if (coast) coast_crop <- mycrop(layer_coast, domain)
-	if (countries) countries_crop <- mycrop(layer_countries, domain)
-	if (states) states_crop <- mycrop(layer_states, domain)
-	if (hillshade) raster_shade_crop <- crop(raster_shade, y=extent(domain))
-
 	df <- df %>%
 	  dplyr::filter(x > domain[1] & x < domain[2] & y > domain[3] & y < domain[4])
 
 	## convert the hillshade layer to a data frame
 	if (hillshade){
 	  df_hs <- data.frame(
-	    xyFromCell(raster_shade_crop, 1:ncell(raster_shade_crop)),
-	    getValues(raster_shade_crop/255)) %>%
+	    xyFromCell(raster_shade, 1:ncell(raster_shade)),
+	    getValues(raster_shade/255)) %>%
 	    as_tibble()
 	}
 
@@ -283,127 +378,111 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	}
 
 	##---------------------------------------------
-	## map theme
-	##---------------------------------------------
-	theme_map <- theme_grey() +    # theme_minimal()
-	  theme(
-
-	    plot.title = element_text(hjust = 0, face="bold", size = 18),
-
-	    legend.position = "right", # c(0.07, 0.35), #"left"
-	    # legend.key.size = unit(c(5, 1), "mm"),
-	    legend.title=element_text(size=12),
-	    legend.text=element_text(size=10),
-
-	    # axis.line = element_blank(),
-	    # axis.text = element_blank(),
-	    # axis.title = element_blank(),
-
-	    # panel.grid.major = element_blank(),
-	    panel.grid.minor = element_blank()
-	    # plot.margin = unit( c(0, 0, 0, 5) , "mm")
-	  )
-
-	# # define labels
-	# dloncoarse <- (lonmax - lonmin)/6
-	# dlonfine   <- (lonmax - lonmin)/18
-	# dlatcoarse <- (latmax - latmin)/6
-	# dlatfine   <- (latmax - latmin)/18
-	# lat.labels <- seq(latmin, latmax, dlatcoarse)
-	# lat.short  <- seq(latmin, latmax, dlatfine)
-	# lon.labels <- seq(lonmin, lonmax, dloncoarse)
-	# lon.short  <- seq(lonmin, lonmax, dlonfine)
-	#
-	# # a <- sapply( lat.labels, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
-	# # b <- sapply( lon.labels, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)})
-
-	# a <- sapply(seq(-180, 180, by = 60), function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
-	lat_breaks <- seq(-90, 90, by = 30)
-	lon_breaks <- seq(-180, 180, by = 60)
-
-	# lat_labels <- sapply( lat_breaks, function(x) if (x>0) {bquote(.(x)*degree ~N)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~S)} )
-	# lon_labels <- sapply( lon_breaks, function(x) if (x>0) {bquote(.(x)*degree ~E)} else if (x==0) {bquote(.(x)*degree)} else {bquote(.(-x)*degree ~W)} )
-
-	lat_labels <- sapply( lat_breaks, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ N"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ S"))} )
-	lon_labels <- sapply( lon_breaks, function(x) if (x>0) {parse(text = paste0(x, "*degree ~ E"))} else if (x==0) {parse(text = paste0(x, "*degree"))} else {parse(text = paste0(-x, "*degree ~ W"))} )
-
-	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
 	ggmap <- ggplot() +
 
 	  ## main raster layer
-	  geom_tile(data = df, aes(x = x, y = y, fill = layercut, color = layercut), show.legend = FALSE) +
+	  ## Note: geom_raster() is a fast special case of geom_tile() used when all the tiles are the same size.
+	  geom_raster(data = df,
+	              aes(x = x, y = y, fill = layercut, color = layercut),
+	              show.legend = FALSE) +
 
-	  # scale_x_continuous(expand=c(0,0)) +
-	  # scale_y_continuous(expand=c(0,0)) +
 	  scale_fill_manual(values = colorscale) +
 	  scale_color_manual(values = colorscale) +
-	  xlab('') + ylab('') +
-	  coord_sf(expand = FALSE) +
 
+	  ## some layout modifications
+	  xlab('') +
+	  ylab('') +
 	  theme_bw() +
 	  theme(axis.ticks.y.right = element_line(),
 	        axis.ticks.x.top = element_line(),
-	        panel.grid = element_blank())
-
-	  # theme(panel.background = element_rect(fill = "white", colour = "grey50"),
-	  #       axis.line.x.top = element_line(),
-	  #       axis.line.y.right = element_line())
-
-	  # scale_x_continuous(labels = lon_labels, breaks = lon_breaks) +
-	  # scale_y_continuous(labels = lat_labels, breaks = lat_breaks)
+	        panel.grid = element_blank(),
+	        panel.background = element_rect(fill = "grey75"),
+	        plot.background = element_rect(fill = "white")
+	        )
 
 	## add coast layer
 	if (coast){
 	  ggmap <- ggmap +
-	    geom_path(data = coast_crop, aes(x = long, y = lat, group = group), color = 'gray25', size = 0.1)
+		  geom_sf(data = layer_coast,
+		          color = "grey10",
+		          fill = NA,
+		          size = 0.1)
 	}
 
 	## add rivers layer
 	if (rivers){
 	  ggmap <- ggmap +
-	    geom_path(data = river_crop, aes(x = long, y = lat, group = group), color = 'dodgerblue', size = 0.2)
+		  geom_sf(data = layer_rivers,
+		          color = "dodgerblue",
+		          fill = NA,
+		          size = 0.1)
 	}
 
 	## add lakes layer
 	if (lakes){
-	  ggmap <- ggmap +
-	    geom_polygon(data = lakes_crop, aes(x = long, y = lat, group = group), fill = "#ADD8E6")
+	  if (class(layer_lakes) != "try-error"){
+	    ggmap <- ggmap +
+	      geom_sf(data = layer_lakes,
+	              color = "grey10",
+	              fill = NA,
+	              size = 0.1)
+	  } else {
+	    warning("layer_lakes not succssfully cropped.")
+	  }
 	}
 
 	## add country layer
 	if (countries){
 	  ggmap <- ggmap +
-	  	geom_path(data = countries_crop, aes(x = long, y = lat, group = group), color = 'gray25', size = 0.2)
-	}
-
-	## add states layer
-	if (states){
-	  ggmap <- ggmap +
-	  	geom_path(data = states_crop, aes(x = long, y = lat, group = group), color = 'gray25', size = 0.1)
+		  geom_sf(data = layer_countries,
+		          color = "grey10",
+		          fill = NA,
+		          size = 0.1)
 	}
 
 	## add hillshade layer
 	if (hillshade){
 	  ggmap <- ggmap +
-	    geom_tile(data = df_hs, aes(x = x, y = y, alpha = SR_50M), show.legend = FALSE) +
+	    geom_raster(
+	    	data = df_hs,
+	    	aes(x = x, y = y, alpha = MSR_50M),
+	    	show.legend = FALSE
+	    	) +
 	    scale_alpha(range=c(0.5, 0))
 	}
+
+	## add ocean
+	if (ocean){
+	  ggmap <- ggmap +
+		  geom_sf(data = layer_ocean,
+		          color = NA,
+		          fill = "azure3")
+	}
+
+  ## limit longitude and latitude extent
+	ggmap <- ggmap  +
+	  coord_sf(xlim = c(lonmin, lonmax),
+	           ylim = c(latmin, latmax),
+	           expand = FALSE   # to draw map strictly bounded by the specified extent
+	           )
 
 	gglegend <- plot_discrete_cbar(
 		breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
 		colors           = colorscale,
 		legend_title     = legend_title,
 		legend_direction = legend_direction,
+	  width = 0.03,
+	  font_size = 3,  # of color key labels
 		...
     )
 
 	if (combine){
 	  if (legend_direction == "vertical"){
-	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.2))
+	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.10))
 	  } else {
-	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 1, rel_heights = c(1, 0.2))
+	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 1, rel_heights = c(1, 0.10))
 	  }
 	} else {
 	  out <- list(ggmap = ggmap, gglegend = gglegend)
@@ -543,6 +622,7 @@ plot_discrete_cbar = function(
         # scale_x_continuous(expand = c(expand_size,expand_size)) +
         scale_fill_manual(values=plotcolors) +
         theme_void() +
+        # theme(plot.background = element_rect(fill = "white")) +
         expand_limits(y = c(ybottom_abs, ytop_abs), x = c(xend, x - 0.1 * mul * spacing_scaling))
 
     # Add legend title

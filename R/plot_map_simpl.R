@@ -35,12 +35,12 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
     n = 100))
   bb_robinson <- st_transform(bb, as.character(robinson))
 
-	# clip countries to bounding box
-	# and transform
-	countries <- countries %>%
-	  st_buffer(0) %>%
-	  st_intersection(st_union(bb)) %>%
-	  st_transform(robinson)
+	# # clip countries to bounding box
+	# # and transform
+	# countries <- countries %>%
+	#   st_buffer(0) %>%
+	#   st_intersection(st_union(bb)) %>%
+	#   st_transform(robinson)
 
 	##---------------------------------------------
 	## map theme
@@ -82,7 +82,7 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 	          colour = 'black',
 	          linetype = 'solid',
 	          fill = NA,
-	          size = 0.1) +
+	          size = 0.1)
 
 	  # coord_sf(
 	  #   ylim = c(-60, 90)
@@ -92,7 +92,7 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 #     scale_y_continuous(expand = c(0, 0), limits = c(latmin, latmax)) +
 # 	  labs( x = "", y = "") +
 
-	  theme_bw()
+	  # theme_bw()
 	  # theme(axis.ticks.y.right = element_line(),
 	  #       axis.ticks.x.top = element_line(),
 	  #       panel.grid = element_blank())
