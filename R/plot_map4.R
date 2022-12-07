@@ -33,6 +33,9 @@
 #' @param dir_ne A character string specifying where to download Naturalearth layers. Once downloaded, they can be quickly loaded. Defaults to \code{"~/data/naturalearth/"}.
 #' @param make_discrete A logical scpecifying whether data layer is to be made discrete for plotting with colors
 #' of discrete bins. Defaults to \code{TRUE}.
+#' @param use_geom_raster A logical specifying whether to use the function \code{geom_raster()} for plotting the raster layer.
+#' Defaults to \code{TRUE}. If \code{FALSE}, \code{geom_tile()} is used. The latter can yield nicer results when data is sparse.
+#' @param is_boolean A logical specifying whether the raster contains boolean values (either \code{TRUE} or \code{FALSE}). Defaults to \code{FALSE}.
 #' @param combine A boolean specifying whether the map and the colorscale should be combined using cowplot.
 #' Defaults to \code{TRUE}. If \code{FALSE}, a list of elements are retruned, where elements are the ggplot2 plot object
 #' and the coloscale object returned by the call to \link{plot_discrete_cbar}.
@@ -47,7 +50,8 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
                       colorscale = viridis::viridis, invert = -1, do_reproj = FALSE,
                       hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, ocean = FALSE,
                       countries = FALSE, dir_ne = "~/data/naturalearth/",
-                      states = FALSE, scale = 110, make_discrete = TRUE,
+                      states = FALSE, scale = 110, make_discrete = TRUE, use_geom_raster = TRUE,
+                      is_boolean = FALSE,
 											plot_title = waiver(), plot_subtitle = waiver(), combine = TRUE, varnam = NULL, ...){
 
   library(rnaturalearth)
@@ -59,29 +63,33 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	## define domain object
 	domain <- c(xmin = lonmin, xmax = lonmax, ymin = latmin, ymax = latmax)
 
-  ## read geo data
-  # res <- ifelse(scale == "low", "110", ifelse(scale == "medium", "50", ifelse(scale == "high", "10", NA)))
-  # if (!exists("raster_shade") && hillshade) raster_shade   <- raster::stack(paste0("~/data/naturalearth/SR_50M/SR_50M.tif"))
-  # if (!exists("layer_lakes") && lakes) layer_lakes         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_lakes/ne_", res, "m_lakes.shp"), paste0("ne_", res, "m_lakes"))
-  # if (!exists("layer_rivers") && rivers) layer_rivers      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_rivers_lake_centerlines/ne_", res, "m_rivers_lake_centerlines.shp"), paste0("ne_", res, "m_rivers_lake_centerlines"))
-  # if (!exists("layer_coast") && coast) layer_coast         <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_coastline/ne_", res, "m_coastline.shp"), paste0("ne_", res, "m_coastline"))
-	# if (!exists("layer_country") && countries) layer_country <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_countryline/ne_", res, "m_admin_0_countries.shp"), paste0("ne_", res, "m_admin_0_countries"))
-	# if (!exists("layer_states") && states) layer_states      <- readOGR(paste0("~/data/naturalearth/ne_", res, "m_admin_1_states_provinces/ne_", res, "m_admin_1_states_provinces.shp"), paste0("ne_", res, "m_admin_1_states_provinces"))
+	# eps <- 0.0001
+	# domain <- c(xmin = domain[["xmin"]] + eps,
+	#             xmax = domain[["xmax"]] - eps,
+	#             ymax = domain[["ymax"]] - eps,
+	#             ymin = domain[["ymin"]] + eps)
 
-  # layer_coast   <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
-  # layer_country <- rnaturalearth::ne_countries(scale = scale, returnclass = "sf")
-  # layer_states  <- rnaturalearth::ne_states(returnclass = "sf")
-
-  # filn <- paste0("~/data/naturalearth/SR_50M/SR_50M.tif")
-  # if (!file.exists(filn)){
-  #   ne_download(scale = scale, type = "")
-  # }
+	# create a bounding box for the robinson projection (following https://github.com/stineb/GECO_map/issues/1)
+	eps <- 0.0
+	bb <- sf::st_union(sf::st_make_grid(
+	  st_bbox(c(xmin = domain[["xmin"]] + eps,
+	            xmax = domain[["xmax"]] - eps,
+	            ymax = domain[["ymax"]] - eps,
+	            ymin = domain[["ymin"]] + eps),
+	          crs = st_crs("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+	          ),
+	  n = 100)) |>
+	  st_union()
 
 	## read 110 m resolution coastline from NaturalEarth data (is a shapefile)
 	layer_coast <- rnaturalearth::ne_coastline(scale = scale, returnclass = "sf")
+		# st_buffer(0) |>
+	  # st_intersection(bb)
 
 	## read 110 m resolution countries outline from NaturalEarth data (is a shapefile)
 	layer_countries <- ne_countries(scale = scale, returnclass = "sf")
+		# st_buffer(0) |>
+	  # st_intersection(bb)
 
 	# download oceans
 	if (ocean){
@@ -107,6 +115,9 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 		## reduce to domain
 		# layer_ocean <- st_crop(layer_ocean, domain)
+		# layer_ocean <- layer_ocean |>
+		# 	st_buffer(0) |>
+		#   st_intersection(bb)
 	}
 
 	# download rivers
@@ -133,6 +144,10 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 		## reduce to domain
 		layer_rivers <- st_crop(layer_rivers, domain)
+		# layer_rivers <- layer_rivers |>
+		# 	st_buffer(0) |>
+		#   st_intersection(bb)
+
 	}
 
 	# download lakes
@@ -159,30 +174,44 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 		## reduce to domain
 		layer_lakes <- try(st_crop(layer_lakes, domain))
+		# layer_lakes <- layer_lakes |>
+		# 	st_buffer(0) |>
+		#   st_intersection(bb)
+
 	}
 
 	# download hillshade
 	if (hillshade){
-		if (length(list.files(path = dir_ne,
-													pattern = paste0("MSR_"))
-													) == 0){
-			scale_hillshade <- 50  # 110 doesn't seem to work
-			layer_hillshade <- rnaturalearth::ne_download(
-			  scale = scale_hillshade,
-			  type = paste0("MSR_", as.character(scale_hillshade), "M"),
-			  category = "raster",
-			  returnclass = "sf",
-			  destdir = dir_ne,
-			  load = FALSE
-			  )
-			raster_shade <- raster::stack(layer_hillshade)
-		} else {
-			scale_hillshade <- 50  # 110 doesn't seem to work
-			raster_shade <- raster::stack(paste0(dir_ne, "MSR_", as.character(scale_hillshade), "M/MSR_", as.character(scale_hillshade), "M.tif"))
-		}
 
-		## reduce to domain
-		raster_shade <- crop(raster_shade, y = extent(domain))
+		# if (length(list.files(path = dir_ne,
+		# 											pattern = paste0("MSR_"))
+		# 											) == 0){
+		# 	scale_hillshade <- 50  # 110 doesn't seem to work
+		# 	layer_hillshade <- rnaturalearth::ne_download(
+		# 	  scale = scale_hillshade,
+		# 	  type = paste0("MSR_", as.character(scale_hillshade), "M"),
+		# 	  category = "raster",
+		# 	  returnclass = "sf",
+		# 	  destdir = dir_ne,
+		# 	  load = FALSE
+		# 	  )
+		# 	raster_shade <- raster::stack(paste0(dir_ne, "MSR_", as.character(scale_hillshade), "M/MSR_", as.character(scale_hillshade), "M.tif"))
+		# } else {
+		# 	scale_hillshade <- 50  # 110 doesn't seem to work
+		# 	raster_shade <- raster::stack(paste0(dir_ne, "MSR_", as.character(scale_hillshade), "M/MSR_", as.character(scale_hillshade), "M.tif"))
+		# }
+
+		# ## reduce to domain
+		# raster_shade <- crop(raster_shade, y = extent(domain))
+
+		## alternatively
+		raster_shade <- terra::rast( raster::stack(paste0(dir_ne, "SR_50M/SR_50M.tif")))
+		df_hs <- raster_shade |>
+			terra::crop(bb) |>
+		  as.data.frame(xy = TRUE) |>
+		  as_tibble() |>
+		  rename(MSR_50M = SR_50M)
+
 	}
 
 
@@ -288,6 +317,12 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  dplyr::select(x, y, !!varnam) %>%
 	  setNames(c("x", "y", "layer"))
 
+	if (is_boolean){
+	  df <- df |>
+	    mutate(layer = ifelse(layer == 1, TRUE,
+	                          ifelse(layer == 0, FALSE, layer)))
+	}
+
 	##---------------------------------------------
 	## Bin data
 	##---------------------------------------------
@@ -317,32 +352,36 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	nbin <- length(breaks) - 1
 
 	## add dummy rows to make sure values in layer span the entire range
-	df <- df %>%
-	  bind_rows(
-	    tibble(
-	      x = NA,
-	      y = NA,
-	      layer = breaks[1:(length(breaks)-1)] + 0.5 * (breaks[2]-breaks[1])
+	if (!is_boolean){
+	  df <- df %>%
+	    bind_rows(
+	      tibble(
+	        x = NA,
+	        y = NA,
+	        layer = breaks[1:(length(breaks)-1)] + 0.5 * (breaks[2]-breaks[1])
+	      )
 	    )
-	  )
+	}
 
 	## bin data
-	if (make_discrete){
-	  df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
-	} else {
-	  df$layercut <- df$layer
+	if (!is_boolean){
+	  if (make_discrete){
+	    df$layercut <- as.factor(base::cut(df$layer, breaks=breaks, labels = FALSE, include.lowest = TRUE))
+	  } else {
+	    df$layercut <- df$layer
+	  }
 	}
 
 	df <- df %>%
 	  dplyr::filter(x > domain[1] & x < domain[2] & y > domain[3] & y < domain[4])
 
-	## convert the hillshade layer to a data frame
-	if (hillshade){
-	  df_hs <- data.frame(
-	    xyFromCell(raster_shade, 1:ncell(raster_shade)),
-	    getValues(raster_shade/255)) %>%
-	    as_tibble()
-	}
+	# ## convert the hillshade layer to a data frame
+	# if (hillshade){
+	#   df_hs <- data.frame(
+	#     xyFromCell(raster_shade, 1:ncell(raster_shade)),
+	#     getValues(raster_shade/255)) %>%
+	#     as_tibble()
+	# }
 
 	##---------------------------------------------
 	## Create color scale
@@ -353,7 +392,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 
 	} else if (class(colorscale)=="character"){
 
-	  if (colorscale %in% c("batlowK", "turku", "tokyo", "batlow")){
+	  if (colorscale %in% c("batlowK", "turku", "tokyo", "lapaz", "batlow")){
 	    colorscale <- scico::scico(nbin, palette = colorscale, direction = invert)
 	  } else {
 	    colorscale <- colorRampPalette( colorscale )( nbin )
@@ -380,16 +419,39 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	##---------------------------------------------
 	## Create ggplot object
 	##---------------------------------------------
-	ggmap <- ggplot() +
+	if (is_boolean){
 
-	  ## main raster layer
-	  ## Note: geom_raster() is a fast special case of geom_tile() used when all the tiles are the same size.
-	  geom_raster(data = df,
-	              aes(x = x, y = y, fill = layercut, color = layercut),
-	              show.legend = FALSE) +
+		require(vhs)
+		ggmap <- ggplot() +
+			geom_raster(data = df,
+									aes(x = x, y = y, fill = layer, color = layer),
+									show.legend = TRUE)
+		colorscale <- vhs("maxell_gu")[c(3,2)]
 
-	  scale_fill_manual(values = colorscale) +
-	  scale_color_manual(values = colorscale) +
+	} else {
+
+		if (use_geom_raster){
+			ggmap <- ggplot() +
+
+			  ## Note: geom_raster() is a fast special case of geom_tile() used when all the tiles are the same size.
+			  geom_raster(data = df,
+			              aes(x = x, y = y, fill = layercut, color = layercut),
+			              show.legend = FALSE)
+		} else {
+			ggmap <- ggplot() +
+
+				## Use geom_tile() to avoid that data sparsity emphasized.
+			  geom_tile(data = df,
+			              aes(x = x, y = y, fill = layercut, color = layercut),
+			              show.legend = FALSE)
+		}
+
+	}
+
+	ggmap <- ggmap +
+
+	  scale_fill_manual(values = colorscale, na.value = "transparent", name = "") +
+	  scale_color_manual(values = colorscale, na.value = "transparent", name = "") +
 
 	  ## some layout modifications
 	  xlab('') +
@@ -398,7 +460,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  theme(axis.ticks.y.right = element_line(),
 	        axis.ticks.x.top = element_line(),
 	        panel.grid = element_blank(),
-	        panel.background = element_rect(fill = "grey75"),
+	        panel.background = element_rect(fill = "white"),
 	        plot.background = element_rect(fill = "white")
 	        )
 
@@ -468,24 +530,29 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	           expand = FALSE   # to draw map strictly bounded by the specified extent
 	           )
 
-	gglegend <- plot_discrete_cbar(
-		breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
-		colors           = colorscale,
-		legend_title     = legend_title,
-		legend_direction = legend_direction,
-	  width = 0.03,
-	  font_size = 3,  # of color key labels
-		...
-    )
+	if (!is_boolean){
+		gglegend <- plot_discrete_cbar(
+			breaks           = breaks_with, # Vector of breaks. If +-Inf are used, triangles will be added to the sides of the color bar
+			colors           = colorscale,
+			legend_title     = legend_title,
+			legend_direction = legend_direction,
+		  width = 0.03,
+		  font_size = 3,  # of color key labels
+			...
+	    )
 
-	if (combine){
-	  if (legend_direction == "vertical"){
-	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.10))
-	  } else {
-	    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 1, rel_heights = c(1, 0.10))
-	  }
+		if (combine){
+		  if (legend_direction == "vertical"){
+		    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 2, rel_widths = c(1, 0.10))
+		  } else {
+		    out <- cowplot::plot_grid(ggmap, gglegend, ncol = 1, rel_heights = c(1, 0.10))
+		  }
+		} else {
+		  out <- list(ggmap = ggmap, gglegend = gglegend)
+		}
+
 	} else {
-	  out <- list(ggmap = ggmap, gglegend = gglegend)
+		out <- list(ggmap = ggmap, gglegend = NA)
 	}
 
   return(out)
