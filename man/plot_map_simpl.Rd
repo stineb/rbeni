@@ -4,7 +4,13 @@
 \alias{plot_map_simpl}
 \title{Empty global map}
 \usage{
-plot_map_simpl(lonmin = -180, lonmax = 180, latmin = -60, latmax = 85)
+plot_map_simpl(
+  lonmin = -180,
+  lonmax = 180,
+  latmin = -60,
+  latmax = 85,
+  dir_ne = "~/data/naturalearth/"
+)
 }
 \arguments{
 \item{lonmin}{Left edge (longitude, in degrees), defaults to -180.}
@@ -14,6 +20,8 @@ plot_map_simpl(lonmin = -180, lonmax = 180, latmin = -60, latmax = 85)
 \item{latmin}{Lower edge (latitude, in degrees), defaults to -90.}
 
 \item{latmax}{Upper edge (latitude, in degrees), defaults to 90.}
+
+\item{dir_ne}{A character string specifying where to download Naturalearth layers. Once downloaded, they can be quickly loaded. Defaults to \code{"~/data/naturalearth/"}.}
 }
 \value{
 A ggplot object for a global map plot.

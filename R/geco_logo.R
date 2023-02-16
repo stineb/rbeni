@@ -10,8 +10,8 @@ magn <- 1.2
 widths <- rep(magn, ncols)
 heights <- rep(magn,nrows)
 
+# white background--------------------------------------------------------------
 pdf( "geco_logo.pdf", width = sum(widths), height = sum(heights) )
-# png( "geco_logo.png", width = sum(widths), height = sum(heights) )
 
 panel <- layout(
   order,
@@ -21,7 +21,7 @@ panel <- layout(
 )
 # layout.show(panel)
 
-par(mar = c(0, 0, 0, 0), family = "Helvetica", xaxs="i", yaxs="i")
+par(mar = c(0, 0, 0, 0), family = "Helvetica", xaxs="i", yaxs="i", bg = NA)
 
 # ## lowercase
 # plot(c(0,1), c(0,1), type = "n", axes = FALSE)
@@ -54,13 +54,48 @@ plot(c(0,1), c(0,1), type = "n", axes = FALSE)
 text(0.5, 0.5, labels = "O", adj = 0.5, font = 2, cex = 12, col = cols[1])
 
 plot(c(0,1), c(0,1), type = "n", axes = FALSE)
-rect(0, 0, 1, 1, col = cols[1], border = NA)
+rect(0, 0, 1, 1, col = cols[1], border = NA) # black
 text(0.5, 0.5, labels = ">", adj = 0.5, font = 2, cex = 12, col = "white")
 plot(c(0,1), c(0,1), type = "n", axes = FALSE)
 rect(0, 0, 1, 1, col = "white", border = NA)
 plot(c(0,1), c(0,1), type = "n", axes = FALSE)
-rect(0, 0, 1, 1, col = cols[2], border = NA)
+rect(0, 0, 1, 1, col = cols[2], border = NA)  # greenish: "#29a274ff"
 plot(c(0,1), c(0,1), type = "n", axes = FALSE)
-rect(0, 0, 1, 1, col = cols[3], border = NA)
+rect(0, 0, 1, 1, col = cols[3], border = NA) # brownish: "#777055ff"
+
+dev.off()
+
+# Spelled-out Geocomputation----------------------------------------------------
+pdf( "geco_logo_transparent.pdf", width = sum(widths), height = sum(heights) )
+
+panel <- layout(
+  order,
+  widths = widths,
+  heights = heights,
+  TRUE
+)
+# layout.show(panel)
+
+par(mar = c(0, 0, 0, 0), family = "Helvetica", xaxs="i", yaxs="i", bg = NA)
+
+## uppercase
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+text(0.5, 0.5, labels = "G", adj = 0.5, font = 2, cex = 12, col = "white")
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+text(0.5, 0.5, labels = "E", adj = 0.5, font = 2, cex = 12, col = "white")
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+text(0.5, 0.5, labels = "C", adj = 0.5, font = 2, cex = 12, col = "white")
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+text(0.5, 0.5, labels = "O", adj = 0.5, font = 2, cex = 12, col = "white")
+
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+rect(0, 0, 1, 1, col = cols[1], border = NA) # black
+text(0.5, 0.5, labels = ">", adj = 0.5, font = 2, cex = 12, col = "white")
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+rect(0, 0, 1, 1, col = "white", border = NA)
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+rect(0, 0, 1, 1, col = cols[2], border = NA)  # greenish: "#29a274ff"
+plot(c(0,1), c(0,1), type = "n", axes = FALSE)
+rect(0, 0, 1, 1, col = cols[3], border = NA) # brownish: "#777055ff"
 
 dev.off()

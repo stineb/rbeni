@@ -6,34 +6,65 @@
 #' @param lonmax Right edge (longitude, in degrees), defaults to 180.
 #' @param latmin Lower edge (latitude, in degrees), defaults to -90.
 #' @param latmax Upper edge (latitude, in degrees), defaults to 90.
+#' @param dir_ne A character string specifying where to download Naturalearth layers. Once downloaded, they can be quickly loaded. Defaults to \code{"~/data/naturalearth/"}.
 #' @return A ggplot object for a global map plot.
 #' @export
 #'
-plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 85){
+plot_map_simpl <- function(lonmin = -180,
+                           lonmax = 180,
+                           latmin = -60,
+                           latmax = 85,
+                           dir_ne = "~/data/naturalearth/"){
 
-	library(rworldmap)
-  library(ggplot2)
-  library(rnaturalearth)
-  library(sf)
+  require(ggplot2)
+  require(sf)
 
-  # download global coastline data from naturalearth
-  countries <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+  # ## define domain object
+  # domain <- c(lonmin, lonmax, latmin, latmax)
 
-  ##---------------------------------------------
-  ## Projection
-  ##---------------------------------------------
-  # set coordinate systems
-  robinson <- CRS("+proj=robin +over")
+  ## read 110 m resolution coastline from NaturalEarth data (is a shapefile)
+  coast <- rnaturalearth::ne_coastline(scale = 110, returnclass = "sf")
 
-  # create a bounding box for the robinson projection
-  bb <- sf::st_union(sf::st_make_grid(
-    st_bbox(c(xmin = -180,
-              xmax = 180,
-              ymax = 90,
-              ymin = -90),
-            crs = st_crs(4326)),
-    n = 100))
-  bb_robinson <- st_transform(bb, as.character(robinson))
+  # download oceans
+  scale <- 110
+  if (length(list.files(path = dir_ne,
+                        pattern = paste0("ne_", as.character(scale), "m_ocean"))
+  ) == 0){
+    layer_ocean <- rnaturalearth::ne_download(
+      scale = scale,
+      type = "ocean",
+      category = "physical",
+      returnclass = "sf",
+      destdir = dir_ne
+    )
+  } else {
+    layer_ocean <- rnaturalearth::ne_load(
+      scale = scale,
+      type = "ocean",
+      category = "physical",
+      returnclass = "sf",
+      destdir = dir_ne
+    )
+  }
+
+  # # download global coastline data from naturalearth
+  # countries <- rnaturalearth::ne_countries(scale = 110, returnclass = "sf")
+
+  # ##---------------------------------------------
+  # ## Projection
+  # ##---------------------------------------------
+  # # set coordinate systems
+  # robinson <- CRS("+proj=robin +over")
+  #
+  # # create a bounding box for the robinson projection
+  # bb <- sf::st_union(sf::st_make_grid(
+  #   st_bbox(c(xmin = -180,
+  #             xmax = 180,
+  #             ymax = 90,
+  #             ymin = -90),
+  #           crs = st_crs(4326)),
+  #   n = 100))
+  # bb_robinson <- st_transform(bb, as.character(robinson))
 
 	# # clip countries to bounding box
 	# # and transform
@@ -42,60 +73,37 @@ plot_map_simpl <- function(lonmin = -180, lonmax = 180, latmin = -60, latmax = 8
 	#   st_intersection(st_union(bb)) %>%
 	#   st_transform(robinson)
 
-	##---------------------------------------------
-	## map theme
-	##---------------------------------------------
-	theme_map <- theme_grey() +    # theme_minimal()
-	  theme(
+  ##---------------------------------------------
+  ## Create ggplot object
+  ##---------------------------------------------
+  gg <- ggplot2::ggplot() +
 
-	    plot.title = element_text(hjust = 0, face="bold", size = 18),
+    # plot ocean
+    geom_sf(data = layer_ocean,
+            color = NA,
+            fill = "white") +
 
-	    legend.position = "right", # c(0.07, 0.35), #"left"
-	    # legend.key.size = unit(c(5, 1), "mm"),
-	    legend.title=element_text(size=12),
-	    legend.text=element_text(size=10),
+    # plot coastline
+    geom_sf(data = coast,
+            colour = 'black',
+            size = 0.1) +
 
-	    # axis.line = element_blank(),
-	    # axis.text = element_blank(),
-	    # axis.title = element_blank(),
+    # set extent in longitude and latitude
+    coord_sf(xlim = c(lonmin, lonmax),
+             ylim = c(latmin, latmax),
+             expand = FALSE   # to draw map strictly bounded by the specified extent
+    ) +
 
-	    # panel.grid.major = element_blank(),
-	    panel.grid.minor = element_blank()
-	    # plot.margin = unit( c(0, 0, 0, 5) , "mm")
-	  )
-
-	##---------------------------------------------
-	## Create ggplot object
-	##---------------------------------------------
-	gg <- ggplot() +
-
-		# background countries
-	  # geom_sf(data = countries, color="black", fill='grey75', size = 0.1) +
-	  geom_sf(data = countries,
-	          colour = 'black',
-	          fill = 'grey75',  # NA for empty
-	          linetype = 'solid',
-	          size = 0.1) +
-
-	  # bounding box
-	  geom_sf(data = bb_robinson,
-	          colour = 'black',
-	          linetype = 'solid',
-	          fill = NA,
-	          size = 0.1)
-
-	  # coord_sf(
-	  #   ylim = c(-60, 90)
-	  # ) +
-
-#     scale_x_continuous(expand = c(0, 0), limits = c(lonmin, lonmax)) +
-#     scale_y_continuous(expand = c(0, 0), limits = c(latmin, latmax)) +
-# 	  labs( x = "", y = "") +
-
-	  # theme_bw()
-	  # theme(axis.ticks.y.right = element_line(),
-	  #       axis.ticks.x.top = element_line(),
-	  #       panel.grid = element_blank())
+    # some layout modifications
+    xlab('') +
+    ylab('') +
+    theme_bw() +
+    theme(axis.ticks.y.right = element_line(),
+          axis.ticks.x.top = element_line(),
+          panel.grid = element_blank(),
+          panel.background = element_rect(fill = "grey70"),
+          plot.background = element_rect(fill = "white")
+    )
 
   return(gg)
 }

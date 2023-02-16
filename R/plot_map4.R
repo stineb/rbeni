@@ -19,6 +19,7 @@
 #' @param legend_direction Either \code{"vertical"} (default) or \code{"horizontal"}.
 #' @param colorscale Either function that returns a set of colors or a vector of color names from which to interpolate.
 #' Defaults to \code{virids::viridis}.
+#' @param color_ocean A color specifyier for the fill color of the ocean layer. Defaults to \code{"azure"}.
 #' @param invert One of 1 or -1, specifying the direction of the color scale. Defaults to -1.
 #' @param do_reproj A boolean specifying whether to re-project the map to Robin projection
 #' @param hillshade A logical specifying whether a hillshade layer should be added. Defaults to \code{FALSE}.
@@ -47,7 +48,7 @@
 #'
 plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180, latmin = -90, latmax = 90,
                       nbin = 10, legend_title = waiver(), legend_direction = "vertical",
-                      colorscale = viridis::viridis, invert = -1, do_reproj = FALSE,
+                      colorscale = viridis::viridis, color_ocean = "azure", invert = -1, do_reproj = FALSE,
                       hillshade = FALSE, rivers = FALSE, lakes = FALSE, coast = TRUE, ocean = FALSE,
                       countries = FALSE, dir_ne = "~/data/naturalearth/",
                       states = FALSE, scale = 110, make_discrete = TRUE, use_geom_raster = TRUE,
@@ -210,7 +211,8 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 			terra::crop(bb) |>
 		  as.data.frame(xy = TRUE) |>
 		  as_tibble() |>
-		  rename(MSR_50M = SR_50M)
+		  # rename(MSR_50M = SR_50M)
+		  rename(MSR_50M = layer)
 
 	}
 
@@ -460,7 +462,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  theme(axis.ticks.y.right = element_line(),
 	        axis.ticks.x.top = element_line(),
 	        panel.grid = element_blank(),
-	        panel.background = element_rect(fill = "white"),
+	        panel.background = element_rect(fill = "grey50"),
 	        plot.background = element_rect(fill = "white")
 	        )
 
@@ -520,7 +522,7 @@ plot_map4 <- function(obj, maxval = NA, breaks = NA, lonmin = -180, lonmax = 180
 	  ggmap <- ggmap +
 		  geom_sf(data = layer_ocean,
 		          color = NA,
-		          fill = "azure3")
+		          fill = color_ocean)
 	}
 
   ## limit longitude and latitude extent
@@ -575,7 +577,8 @@ plot_discrete_cbar = function(
     expand_size_y = 0.5,
     spacing_scaling = 0.3, # Multiplicative factor for label and legend title spacing
     width = 0.01, # Thickness of color bar
-    triangle_size = 0.05 # Relative width of +-Inf triangles
+    triangle_size = 0.05, # Relative width of +-Inf triangles
+    color_text_legend = "grey80"  # "black"
     ) {
 
     require(ggplot2)
@@ -681,11 +684,15 @@ plot_discrete_cbar = function(
         geom_segment(data = data.frame(y = breaks, yend = breaks),
             aes(y=y, yend=yend),
             x = x - 0.01 * mul * spacing_scaling, xend = x, #+ 0.01 * mul * spacing_scaling, # xend = xend,
-            inherit.aes = FALSE) +
+            inherit.aes = FALSE,
+            color = color_text_legend
+            ) +
         annotate(geom = 'text', x = x - 0.02 * mul * spacing_scaling, y = breaks,
                 label = labels,
                 size = font_size,
-                hjust = 0) +
+                hjust = 0,
+                color = color_text_legend
+                ) +
         # scale_x_continuous(expand = c(expand_size,expand_size)) +
         scale_fill_manual(values=plotcolors) +
         theme_void() +
@@ -705,7 +712,8 @@ plot_discrete_cbar = function(
               angle = 0,
               size = font_size,
               fontface = 1,
-              hjust = 0
+              hjust = 0,
+              color = color_text_legend
               )
     }
 
